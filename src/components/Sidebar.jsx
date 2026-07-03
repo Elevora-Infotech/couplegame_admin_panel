@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FolderTree, Library, MessageCircleQuestion, Settings, LogOut, Sparkles, Users, Gamepad2, Layers, Bell, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, FolderTree, Library, MessageCircleQuestion, Settings, LogOut, Sparkles, Users, Gamepad2, Layers, Bell, BarChart3, HeartHandshake } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar() {
@@ -13,6 +13,7 @@ export default function Sidebar() {
     { name: 'Categories', path: '/categories', icon: FolderTree },
     { name: 'Card Catalog', path: '/cards', icon: Library },
     { name: 'Card Analytics',path: '/card-analytics',icon: BarChart3 },
+    { name: 'Dynamics',       path: '/relationship-dynamics',icon: HeartHandshake },
     { name: 'Questions',    path: '/questions',    icon: MessageCircleQuestion },
     { name: 'Master Deck',  path: '/master-deck',  icon: Layers },
     { name: 'Notifications',path: '/notifications',icon: Bell },
