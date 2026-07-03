@@ -16,6 +16,9 @@ import MasterDeck from './pages/MasterDeck';
 import Notifications from './pages/Notifications';
 import CardAnalytics from './pages/CardAnalytics';
 import RelationshipDynamics from './pages/RelationshipDynamics';
+import FunnelTracking from './pages/FunnelTracking';
+import DropoffAnalysis from './pages/DropoffAnalysis';
+import ABTesting from './pages/ABTesting';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -62,6 +65,9 @@ function AppRoutes() {
         <Route path="cards" element={<CardCatalog />} />
         <Route path="card-analytics" element={<CardAnalytics />} />
         <Route path="relationship-dynamics" element={<RelationshipDynamics />} />
+        <Route path="funnel-tracking" element={<FunnelTracking />} />
+        <Route path="dropoff-analysis" element={<DropoffAnalysis />} />
+        <Route path="ab-testing" element={<ABTesting />} />
         <Route path="questions" element={<Questions />} />
         <Route path="master-deck" element={<MasterDeck />} />
         <Route path="notifications" element={<Notifications />} />
