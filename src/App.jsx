@@ -13,6 +13,8 @@ import Questions from './pages/Questions';
 import UserManagement from './pages/UserManagement';
 import GameManagement from './pages/GameManagement';
 import MasterDeck from './pages/MasterDeck';
+import Notifications from './pages/Notifications';
+import CardAnalytics from './pages/CardAnalytics';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -57,8 +59,10 @@ function AppRoutes() {
         <Route path="games" element={<GameManagement />} />
         <Route path="categories" element={<Categories />} />
         <Route path="cards" element={<CardCatalog />} />
+        <Route path="card-analytics" element={<CardAnalytics />} />
         <Route path="questions" element={<Questions />} />
         <Route path="master-deck" element={<MasterDeck />} />
+        <Route path="notifications" element={<Notifications />} />
         <Route path="settings" element={
           <div className="flex items-center justify-center h-full text-slate-400">
             Settings functionality coming soon.
