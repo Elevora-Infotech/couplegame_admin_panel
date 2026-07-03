@@ -41,6 +41,8 @@ function StatPill({ icon: Icon, label, value, color }) {
 function CardPickerModal({ deckId, poolCardIds, onClose, onAdded }) {
   const [allCards, setAllCards] = useState([]);
   const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const [typeFilter, setTypeFilter] = useState('ALL');
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(null);
 
@@ -58,10 +60,15 @@ function CardPickerModal({ deckId, poolCardIds, onClose, onAdded }) {
     load();
   }, []);
 
-  const filtered = allCards.filter(c =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    (c.card_categories?.name || '').toLowerCase().includes(search.toLowerCase())
-  );
+  const categories = [...new Set(allCards.map(c => c.card_categories?.name).filter(Boolean))];
+
+  const filtered = allCards.filter(c => {
+    const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) || 
+                          (c.card_categories?.name || '').toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = categoryFilter === 'ALL' || c.card_categories?.name === categoryFilter;
+    const matchesType = typeFilter === 'ALL' || c.card_type === typeFilter;
+    return matchesSearch && matchesCategory && matchesType;
+  }).sort((a, b) => a.name.localeCompare(b.name));
 
   const handleAdd = async (card) => {
     if (poolCardIds.includes(card.id)) {
@@ -99,13 +106,27 @@ function CardPickerModal({ deckId, poolCardIds, onClose, onAdded }) {
           </button>
         </div>
 
-        {/* Search */}
-        <div className="px-6 py-4 border-b border-slate-800 shrink-0">
+        {/* Filters */}
+        <div className="px-6 py-4 border-b border-slate-800 shrink-0 space-y-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Search by card name or category…"
-              className="w-full pl-9 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50" />
+              className="w-full pl-9 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50" />
+          </div>
+          <div className="flex gap-3">
+            <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}
+              className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+              <option value="ALL">All Categories</option>
+              {categories.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
+              className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+              <option value="ALL">All Types</option>
+              <option value="ACTION">Action</option>
+              <option value="REACTION">Reaction</option>
+              <option value="WILDCARD">Wildcard</option>
+            </select>
           </div>
         </div>
 
@@ -170,25 +191,27 @@ function DeckPanel({ deck, onRefresh }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [removing, setRemoving] = useState(null);
   const [toggling, setToggling] = useState(false);
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState('ALL');
 
   const meta = PLAN_META[deck.plan_type] || {};
 
-  const fetchDetail = useCallback(async () => {
-    setLoadingD(true);
+  const fetchDetail = useCallback(async (silent = false) => {
+    if (!silent) setLoadingD(true);
     try {
       const r = await axiosInstance.get(`/admin/master-decks/${deck.id}`);
       setDetail(r.data.data.deck);
     } catch { toast.error('Failed to load deck detail'); }
-    finally { setLoadingD(false); }
+    finally { if (!silent) setLoadingD(false); }
   }, [deck.id]);
 
-  const fetchStats = useCallback(async () => {
-    setLoadingS(true);
+  const fetchStats = useCallback(async (silent = false) => {
+    if (!silent) setLoadingS(true);
     try {
       const r = await axiosInstance.get(`/admin/master-decks/${deck.id}/stats`);
       setStats(r.data.data.stats);
     } catch {}
-    finally { setLoadingS(false); }
+    finally { if (!silent) setLoadingS(false); }
   }, [deck.id]);
 
   useEffect(() => { fetchDetail(); fetchStats(); }, [fetchDetail, fetchStats]);
@@ -199,7 +222,7 @@ function DeckPanel({ deck, onRefresh }) {
     try {
       const r = await axiosInstance.delete(`/admin/master-decks/${deck.id}/cards/${masterDeckCardId}`);
       toast.success(r.data.data?.message || 'Card removed');
-      fetchDetail(); fetchStats(); onRefresh();
+      fetchDetail(true); fetchStats(true); onRefresh(true);
     } catch (e) {
       toast.error(e.response?.data?.message || 'Failed to remove card');
     } finally { setRemoving(null); }
@@ -210,13 +233,20 @@ function DeckPanel({ deck, onRefresh }) {
     try {
       await axiosInstance.put(`/admin/master-decks/${deck.id}`, { is_active: !deck.is_active });
       toast.success(deck.is_active ? 'Deck deactivated' : 'Deck activated');
-      onRefresh();
+      onRefresh(true);
     } catch (e) {
       toast.error(e.response?.data?.message || 'Failed to update deck');
     } finally { setToggling(false); }
   };
 
   const poolCardIds = (detail?.cards || []).map(c => c.id);
+
+  const displayCards = (detail?.cards || []).filter(c => {
+    const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase()) || 
+                          (c.card_categories?.name || '').toLowerCase().includes(search.toLowerCase());
+    const matchesType = typeFilter === 'ALL' || c.card_type === typeFilter;
+    return matchesSearch && matchesType;
+  }).sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <div className={`bg-slate-900 border rounded-2xl overflow-hidden ${deck.is_active ? 'border-slate-800' : 'border-slate-800 opacity-70'}`}>
@@ -291,6 +321,23 @@ function DeckPanel({ deck, onRefresh }) {
       </div>
 
       {/* Card Pool List */}
+      <div className="px-4 pb-3 flex gap-2">
+        <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <input value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Search in pool…"
+              className="w-full pl-8 pr-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/50" />
+        </div>
+        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
+          className="bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-indigo-500/50">
+          <option value="ALL">All Types</option>
+          <option value="ACTION">Action</option>
+          <option value="REACTION">Reaction</option>
+          <option value="WILDCARD">Wildcard</option>
+          <option value="DEFENSE">Defense</option>
+        </select>
+      </div>
+
       <div className="max-h-72 overflow-y-auto">
         {loadingD ? (
           <div className="flex items-center justify-center py-10">
@@ -304,6 +351,8 @@ function DeckPanel({ deck, onRefresh }) {
               Add first card
             </button>
           </div>
+        ) : displayCards.length === 0 ? (
+          <div className="text-center py-8 text-xs text-slate-500">No cards match your filter.</div>
         ) : (
           <table className="w-full text-sm">
             <thead>
@@ -315,7 +364,7 @@ function DeckPanel({ deck, onRefresh }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/40">
-              {detail.cards.map(card => (
+              {displayCards.map(card => (
                 <tr key={card.master_deck_card_id} className="hover:bg-slate-800/30 transition-colors">
                   <td className="px-5 py-3">
                     <div>
@@ -358,7 +407,7 @@ function DeckPanel({ deck, onRefresh }) {
           deckId={deck.id}
           poolCardIds={poolCardIds}
           onClose={() => setPickerOpen(false)}
-          onAdded={() => { fetchDetail(); fetchStats(); onRefresh(); }}
+          onAdded={() => { fetchDetail(true); fetchStats(true); onRefresh(true); }}
         />
       )}
     </div>
@@ -370,14 +419,14 @@ export default function MasterDeck() {
   const [decks, setDecks]   = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchDecks = useCallback(async () => {
-    setLoading(true);
+  const fetchDecks = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const r = await axiosInstance.get('/admin/master-decks');
       setDecks(r.data.data.decks || []);
     } catch (e) {
       toast.error('Failed to load master decks');
-    } finally { setLoading(false); }
+    } finally { if (!silent) setLoading(false); }
   }, []);
 
   useEffect(() => { fetchDecks(); }, [fetchDecks]);

@@ -9,6 +9,8 @@ import Login from './pages/Login';
 import Overview from './pages/Overview';
 import Categories from './pages/Categories';
 import CardCatalog from './pages/CardCatalog';
+import BundlesManagement from './pages/BundlesManagement';
+import PurchasesDashboard from './pages/PurchasesDashboard';
 import Questions from './pages/Questions';
 import UserManagement from './pages/UserManagement';
 import GameManagement from './pages/GameManagement';
@@ -70,6 +72,8 @@ function AppRoutes() {
         <Route path="games" element={<GameManagement />} />
         <Route path="categories" element={<Categories />} />
         <Route path="cards" element={<CardCatalog />} />
+        <Route path="bundles" element={<BundlesManagement />} />
+        <Route path="purchases" element={<PurchasesDashboard />} />
         <Route path="card-analytics" element={<CardAnalytics />} />
         <Route path="relationship-dynamics" element={<RelationshipDynamics />} />
         <Route path="funnel-tracking" element={<FunnelTracking />} />

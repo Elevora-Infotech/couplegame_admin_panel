@@ -4,7 +4,7 @@ import {
   LayoutDashboard, FolderTree, Library, MessageCircleQuestion, Settings, LogOut, Sparkles,
   Users, Gamepad2, Layers, Bell, BarChart3, HeartHandshake, Filter, UserMinus,
   SplitSquareHorizontal, ChevronDown, ChevronRight, TrendingUp, Brain, LayoutGrid,
-  ShieldAlert, MessageSquareMore, GitBranch, Lightbulb
+  ShieldAlert, MessageSquareMore, GitBranch, Lightbulb, PackageOpen, CreditCard
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -19,6 +19,8 @@ export default function Sidebar() {
     { name: 'Games',           path: '/games',          icon: Gamepad2 },
     { name: 'Categories',      path: '/categories',     icon: FolderTree },
     { name: 'Card Catalog',    path: '/cards',          icon: Library },
+    { name: 'Bundles',         path: '/bundles',        icon: PackageOpen },
+    { name: 'Purchases',       path: '/purchases',      icon: CreditCard },
     { name: 'Questions',       path: '/questions',      icon: MessageCircleQuestion },
     { name: 'Master Deck',     path: '/master-deck',    icon: Layers },
     { name: 'Notifications',   path: '/notifications',  icon: Bell },
