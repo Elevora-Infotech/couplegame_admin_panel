@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FolderTree, Library, MessageCircleQuestion, Settings, LogOut, Sparkles, Users, Gamepad2, Layers, Bell, BarChart3, HeartHandshake, Filter, UserMinus, SplitSquareHorizontal } from 'lucide-react';
+import { LayoutDashboard, FolderTree, Library, MessageCircleQuestion, Settings, LogOut, Sparkles, Users, Gamepad2, Layers, Bell, BarChart3, HeartHandshake, Filter, UserMinus, SplitSquareHorizontal, ChevronDown, ChevronRight, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
+  const [isGrowthOpen, setIsGrowthOpen] = useState(false);
 
   const coreItems = [
     { name: 'Overview', path: '/', icon: LayoutDashboard },
@@ -70,18 +71,26 @@ export default function Sidebar() {
           </div>
         </div>
 
-        {/* Growth & Optimization */}
+        {/* Growth & Optimization (Dropdown) */}
         <div>
-          <div className="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-3 px-4 flex items-center gap-2">
-            Growth & Optimization
-          </div>
-          <div className="space-y-1.5">
+          <button 
+            onClick={() => setIsGrowthOpen(!isGrowthOpen)}
+            className="w-full flex items-center justify-between text-xs font-bold text-emerald-500 uppercase tracking-wider mb-2 px-4 py-2 hover:bg-slate-800/50 rounded-lg transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4" />
+              Growth & Optimization
+            </div>
+            {isGrowthOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          </button>
+          
+          <div className={`space-y-1.5 overflow-hidden transition-all duration-300 ${isGrowthOpen ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0'}`}>
             {renderNav(growthItems)}
           </div>
         </div>
 
         {/* Settings */}
-        <div>
+        <div className="pt-2">
           <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-4">
             System
           </div>
