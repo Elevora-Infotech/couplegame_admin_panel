@@ -19,6 +19,13 @@ import RelationshipDynamics from './pages/RelationshipDynamics';
 import FunnelTracking from './pages/FunnelTracking';
 import DropoffAnalysis from './pages/DropoffAnalysis';
 import ABTesting from './pages/ABTesting';
+import BehavioralScoring from './pages/BehavioralScoring';
+import SmartDeckEngine from './pages/SmartDeckEngine';
+import RiskDetection from './pages/RiskDetection';
+import FeedbackSystem from './pages/FeedbackSystem';
+import ContentVersioning from './pages/ContentVersioning';
+import BusinessKPIs from './pages/BusinessKPIs';
+import InsightDashboard from './pages/InsightDashboard';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -71,6 +78,13 @@ function AppRoutes() {
         <Route path="questions" element={<Questions />} />
         <Route path="master-deck" element={<MasterDeck />} />
         <Route path="notifications" element={<Notifications />} />
+        <Route path="intelligence/behavioral-scoring" element={<BehavioralScoring />} />
+        <Route path="intelligence/smart-deck" element={<SmartDeckEngine />} />
+        <Route path="intelligence/risk-detection" element={<RiskDetection />} />
+        <Route path="intelligence/feedback" element={<FeedbackSystem />} />
+        <Route path="intelligence/content-versioning" element={<ContentVersioning />} />
+        <Route path="intelligence/kpis" element={<BusinessKPIs />} />
+        <Route path="intelligence/insights" element={<InsightDashboard />} />
         <Route path="settings" element={
           <div className="flex items-center justify-center h-full text-slate-400">
             Settings functionality coming soon.
