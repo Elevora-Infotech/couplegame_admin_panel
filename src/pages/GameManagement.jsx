@@ -158,29 +158,28 @@ function GameDetailModal({ game, onClose, onForceEnd, loading }) {
                 <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50 flex flex-col">
                   <p className="text-sm font-bold text-white mb-3">👑 {room.host?.name || 'Host'}'s Deck</p>
                   <div className="space-y-2 max-h-48 overflow-y-auto pr-1 flex-1">
-                    {hostDeck.regular.map(d => (
+                    {hostDeck.regular?.map(d => (
                       <div key={d.id} className={`p-2.5 rounded-lg text-xs flex justify-between items-center ${d.is_used ? 'bg-slate-800/50 text-slate-500' : 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20'}`}>
                         <span className="truncate pr-2 font-medium">{d.cards?.name}</span>
                         <span className={`shrink-0 font-semibold ${d.is_used ? '' : 'text-indigo-400'}`}>{d.is_used ? 'Used' : 'Available'}</span>
                       </div>
                     ))}
-                    {hostDeck.regular.length === 0 && <p className="text-xs text-slate-500 italic py-2">No cards in deck</p>}
+                    {!hostDeck.regular?.length && <p className="text-xs text-slate-500 italic py-2">No cards in deck</p>}
                   </div>
                 </div>
               )}
-              
               {/* Partner Deck */}
               {partnerDeck && (
                 <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50 flex flex-col">
                   <p className="text-sm font-bold text-white mb-3">🤝 {room.partner?.name || 'Partner'}'s Deck</p>
                   <div className="space-y-2 max-h-48 overflow-y-auto pr-1 flex-1">
-                    {partnerDeck.regular.map(d => (
+                    {partnerDeck.regular?.map(d => (
                       <div key={d.id} className={`p-2.5 rounded-lg text-xs flex justify-between items-center ${d.is_used ? 'bg-slate-800/50 text-slate-500' : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'}`}>
                         <span className="truncate pr-2 font-medium">{d.cards?.name}</span>
                         <span className={`shrink-0 font-semibold ${d.is_used ? '' : 'text-emerald-400'}`}>{d.is_used ? 'Used' : 'Available'}</span>
                       </div>
                     ))}
-                    {partnerDeck.regular.length === 0 && <p className="text-xs text-slate-500 italic py-2">No cards in deck</p>}
+                    {!partnerDeck.regular?.length && <p className="text-xs text-slate-500 italic py-2">No cards in deck</p>}
                   </div>
                 </div>
               )}
@@ -210,22 +209,86 @@ function GameDetailModal({ game, onClose, onForceEnd, loading }) {
           </div>
         )}
 
-        {/* Deflect Usage */}
-        {deflects.length > 0 && (
+        {/* Deflect Cards — per-user panels */}
+        {(hostDeck?.deflect?.length > 0 || partnerDeck?.deflect?.length > 0) && (
           <div className="p-6 border-b border-slate-800">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
-              Deflect Cards Used ({deflects.length})
-            </p>
-            <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-              {deflects.map(d => (
-                <div key={d.id} className="flex items-center justify-between p-3 bg-purple-500/5 rounded-xl border border-purple-500/10">
-                  <div>
-                    <p className="text-xs font-semibold text-white">{d.cards?.name}</p>
-                    <p className="text-xs text-slate-500">Used by {d.user?.name}</p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Deflect Cards
+              </p>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 font-semibold">
+                {(hostDeck?.deflect?.length || 0) + (partnerDeck?.deflect?.length || 0)} total · {(hostDeck?.deflect?.filter(d => d.is_used).length || 0) + (partnerDeck?.deflect?.filter(d => d.is_used).length || 0)} used
+              </span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Host Deflect Cards */}
+              {hostDeck && (
+                <div className="bg-purple-900/10 rounded-xl p-4 border border-purple-500/20 flex flex-col">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Shield className="w-3.5 h-3.5 text-purple-400" />
+                    <p className="text-sm font-bold text-white">👑 {room.host?.name || 'Host'}</p>
+                    <span className="ml-auto text-xs text-purple-400 font-semibold">
+                      {hostDeck.deflect?.filter(d => d.is_used).length || 0}/{hostDeck.deflect?.length || 0} used
+                    </span>
                   </div>
-                  <span className="text-xs text-slate-500">{fmtTime(d.used_at)}</span>
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1 flex-1">
+                    {hostDeck.deflect?.length > 0 ? hostDeck.deflect.map(d => (
+                      <div key={d.id} className={`p-2.5 rounded-lg text-xs flex justify-between items-center ${
+                        d.is_used
+                          ? 'bg-slate-800/60 border border-slate-700/40'
+                          : 'bg-purple-500/10 border border-purple-500/20'
+                      }`}>
+                        <span className={`truncate pr-2 font-medium ${d.is_used ? 'text-slate-500 line-through' : 'text-purple-200'}`}>
+                          {d.cards?.name}
+                        </span>
+                        <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${
+                          d.is_used
+                            ? 'bg-slate-700 text-slate-400'
+                            : 'bg-purple-500/20 text-purple-300'
+                        }`}>
+                          {d.is_used ? 'Used' : 'Available'}
+                        </span>
+                      </div>
+                    )) : (
+                      <p className="text-xs text-slate-500 italic py-2">No deflect cards</p>
+                    )}
+                  </div>
                 </div>
-              ))}
+              )}
+              {/* Partner Deflect Cards */}
+              {partnerDeck && (
+                <div className="bg-purple-900/10 rounded-xl p-4 border border-purple-500/20 flex flex-col">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Shield className="w-3.5 h-3.5 text-purple-400" />
+                    <p className="text-sm font-bold text-white">🤝 {room.partner?.name || 'Partner'}</p>
+                    <span className="ml-auto text-xs text-purple-400 font-semibold">
+                      {partnerDeck.deflect?.filter(d => d.is_used).length || 0}/{partnerDeck.deflect?.length || 0} used
+                    </span>
+                  </div>
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1 flex-1">
+                    {partnerDeck.deflect?.length > 0 ? partnerDeck.deflect.map(d => (
+                      <div key={d.id} className={`p-2.5 rounded-lg text-xs flex justify-between items-center ${
+                        d.is_used
+                          ? 'bg-slate-800/60 border border-slate-700/40'
+                          : 'bg-purple-500/10 border border-purple-500/20'
+                      }`}>
+                        <span className={`truncate pr-2 font-medium ${d.is_used ? 'text-slate-500 line-through' : 'text-purple-200'}`}>
+                          {d.cards?.name}
+                        </span>
+                        <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${
+                          d.is_used
+                            ? 'bg-slate-700 text-slate-400'
+                            : 'bg-purple-500/20 text-purple-300'
+                        }`}>
+                          {d.is_used ? 'Used' : 'Available'}
+                        </span>
+                      </div>
+                    )) : (
+                      <p className="text-xs text-slate-500 italic py-2">No deflect cards</p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

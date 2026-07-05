@@ -48,11 +48,14 @@ function StatCard({ icon: Icon, label, value, color }) {
 
 // ── Card Form Modal ───────────────────────────────────────────
 function CardModal({ categories, editCard, onClose, onSaved }) {
+  const deflectCat = categories.find(c => c.name.toLowerCase().includes('deflect'));
+  const isExistingDeflect = editCard && (editCard.deflect_action || (deflectCat && editCard.card_categories?.id === deflectCat.id));
+
   const [form, setForm] = useState(editCard ? {
-    category_id:       editCard.card_categories?.id || '',
+    category_id:       isExistingDeflect && deflectCat ? deflectCat.id : (editCard.card_categories?.id || ''),
     name:              editCard.name || '',
     power_description: editCard.power_description || '',
-    card_type:         editCard.card_type || 'ACTION',
+    card_type:         isExistingDeflect ? 'DEFENSE' : (editCard.card_type || 'ACTION'),
     deflect_action:    editCard.deflect_action || '',
     image_url:         editCard.image_url || '',
     is_active:         editCard.is_active ?? true,
@@ -70,6 +73,13 @@ function CardModal({ categories, editCard, onClose, onSaved }) {
     setSaving(true);
     try {
       const payload = { ...form, deflect_action: form.deflect_action || null };
+      
+      // Enforce deflect card rules on payload
+      if (isExistingDeflect) {
+        payload.card_type = 'DEFENSE';
+        if (deflectCat) payload.category_id = deflectCat.id;
+      }
+
       if (editCard) {
         await axiosInstance.put(`/admin/dashboard/cards/${editCard.id}`, payload);
         toast.success('Card updated');
@@ -85,6 +95,10 @@ function CardModal({ categories, editCard, onClose, onSaved }) {
       setSaving(false);
     }
   };
+
+  const categoryOptions = isExistingDeflect 
+    ? (deflectCat ? [deflectCat] : categories)
+    : categories.filter(c => !deflectCat || c.id !== deflectCat.id);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
@@ -105,10 +119,10 @@ function CardModal({ categories, editCard, onClose, onSaved }) {
           {/* Category */}
           <div>
             <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Category *</label>
-            <select value={form.category_id} onChange={e => set('category_id', e.target.value)} required
-              className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+            <select value={form.category_id} onChange={e => set('category_id', e.target.value)} required disabled={isExistingDeflect}
+              className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 disabled:opacity-50 disabled:cursor-not-allowed">
               <option value="" disabled>Select category…</option>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {categoryOptions.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
 
@@ -129,23 +143,25 @@ function CardModal({ categories, editCard, onClose, onSaved }) {
           </div>
 
           {/* Card Type + Deflect Action side by side */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className={`grid ${isExistingDeflect ? 'grid-cols-2' : 'grid-cols-1'} gap-3`}>
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Card Type *</label>
-              <select value={form.card_type} onChange={e => set('card_type', e.target.value)}
-                className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+              <select value={form.card_type} onChange={e => set('card_type', e.target.value)} disabled={isExistingDeflect}
+                className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 disabled:opacity-50 disabled:cursor-not-allowed">
                 {CARD_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
-                Deflect Action <span className="text-purple-400">(Deflect cards only)</span>
-              </label>
-              <select value={form.deflect_action} onChange={e => set('deflect_action', e.target.value)}
-                className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50">
-                {DEFLECT_ACTIONS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
-              </select>
-            </div>
+            {isExistingDeflect && (
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                  Deflect Action <span className="text-purple-400">(Deflect cards only)</span>
+                </label>
+                <select value={form.deflect_action} onChange={e => set('deflect_action', e.target.value)}
+                  className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-500/50">
+                  {DEFLECT_ACTIONS.filter(d => d.value !== '').map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Image URL */}
