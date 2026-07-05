@@ -47,7 +47,7 @@ function StatCard({ icon: Icon, label, value, color, sub }) {
 // ── Game Detail Modal ─────────────────────────────────────────
 function GameDetailModal({ game, onClose, onForceEnd, loading }) {
   if (!game) return null;
-  const { room, stats, sends, penalties, deflects } = game;
+  const { room, stats, sends, penalties, deflects, hostDeck, partnerDeck } = game;
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto">
@@ -142,6 +142,48 @@ function GameDetailModal({ game, onClose, onForceEnd, loading }) {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Player Decks */}
+        {(hostDeck?.regular?.length > 0 || partnerDeck?.regular?.length > 0) && (
+          <div className="p-6 border-b border-slate-800">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+              Player Decks
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Host Deck */}
+              {hostDeck && (
+                <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50 flex flex-col">
+                  <p className="text-sm font-bold text-white mb-3">👑 {room.host?.name || 'Host'}'s Deck</p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1 flex-1">
+                    {hostDeck.regular.map(d => (
+                      <div key={d.id} className={`p-2.5 rounded-lg text-xs flex justify-between items-center ${d.is_used ? 'bg-slate-800/50 text-slate-500' : 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20'}`}>
+                        <span className="truncate pr-2 font-medium">{d.cards?.name}</span>
+                        <span className={`shrink-0 font-semibold ${d.is_used ? '' : 'text-indigo-400'}`}>{d.is_used ? 'Used' : 'Available'}</span>
+                      </div>
+                    ))}
+                    {hostDeck.regular.length === 0 && <p className="text-xs text-slate-500 italic py-2">No cards in deck</p>}
+                  </div>
+                </div>
+              )}
+              
+              {/* Partner Deck */}
+              {partnerDeck && (
+                <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50 flex flex-col">
+                  <p className="text-sm font-bold text-white mb-3">🤝 {room.partner?.name || 'Partner'}'s Deck</p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1 flex-1">
+                    {partnerDeck.regular.map(d => (
+                      <div key={d.id} className={`p-2.5 rounded-lg text-xs flex justify-between items-center ${d.is_used ? 'bg-slate-800/50 text-slate-500' : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'}`}>
+                        <span className="truncate pr-2 font-medium">{d.cards?.name}</span>
+                        <span className={`shrink-0 font-semibold ${d.is_used ? '' : 'text-emerald-400'}`}>{d.is_used ? 'Used' : 'Available'}</span>
+                      </div>
+                    ))}
+                    {partnerDeck.regular.length === 0 && <p className="text-xs text-slate-500 italic py-2">No cards in deck</p>}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
