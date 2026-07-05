@@ -6,13 +6,13 @@ import { adminUserApi } from '../api/adminUserApi';
 // ── Stat Card ─────────────────────────────────────────────────
 function StatCard({ icon: Icon, label, value, color }) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-4">
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color}`}>
-        <Icon className="w-6 h-6 text-white" />
+    <div className="glass-card rounded-[1.5rem] p-5 flex items-center gap-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg group">
+      <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center ${color} shadow-inner group-hover:scale-110 transition-transform duration-300`}>
+        <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
       </div>
       <div>
-        <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">{label}</p>
-        <p className="text-2xl font-bold text-white">{value ?? '—'}</p>
+        <p className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">{label}</p>
+        <p className="text-xl md:text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">{value ?? '—'}</p>
       </div>
     </div>
   );
@@ -25,8 +25,8 @@ function UserDetailModal({ user, onClose, onBlock, onUnblock, onResetRoom, loadi
   const s = user.stats;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#030712]/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
+      <div className="glass-card border border-white/10 rounded-[2rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-300">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-800">
           <div className="flex items-center gap-4">
@@ -241,12 +241,12 @@ export default function UserManagement() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">User Management</h1>
-        <p className="text-slate-400 text-sm mt-1">View, search, block, and manage all registered users.</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">User Management</h1>
+        <p className="text-slate-400 text-xs md:text-sm mt-1">View, search, block, and manage all registered users.</p>
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4">
         <StatCard icon={Users} label="Total Users" value={stats?.total_users} color="bg-indigo-500/80" />
         <StatCard icon={UserCheck} label="New Today" value={stats?.new_today} color="bg-emerald-500/80" />
         <StatCard icon={Users} label="Last 7 Days" value={stats?.new_last_7_days} color="bg-blue-500/80" />
@@ -265,19 +265,19 @@ export default function UserManagement() {
               placeholder="Search by name or email..."
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
+              className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all shadow-inner"
             />
           </div>
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            className="px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+            className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all shadow-inner"
           >
-            <option value="">All Users</option>
-            <option value="active">Active Only</option>
-            <option value="blocked">Blocked Only</option>
+            <option value="" className="bg-slate-900">All Users</option>
+            <option value="active" className="bg-slate-900">Active Only</option>
+            <option value="blocked" className="bg-slate-900">Blocked Only</option>
           </select>
-          <button type="submit" className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl transition-all">
+          <button type="submit" className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-violet-500/20 hover:shadow-violet-500/40">
             Search
           </button>
           {(search || statusFilter) && (
@@ -293,8 +293,8 @@ export default function UserManagement() {
       </div>
 
       {/* Users Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+      <div className="glass-panel rounded-[1.5rem] overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
           <h2 className="font-semibold text-white text-sm">
             {loading ? 'Loading...' : `${pagination.total} Users Found`}
           </h2>
@@ -322,36 +322,36 @@ export default function UserManagement() {
                   <th className="px-6 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/50">
+              <tbody className="divide-y divide-white/5">
                 {users.map(u => (
-                  <tr key={u.id} className="hover:bg-slate-800/30 transition-colors group">
+                  <tr key={u.id} className="hover:bg-white/[0.04] transition-all duration-300 group hover:translate-x-1">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/40 to-emerald-500/40 flex items-center justify-center text-sm font-bold text-white border border-slate-700">
+                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500/40 to-blue-500/40 flex items-center justify-center text-sm font-bold text-white border border-white/10 shadow-inner group-hover:scale-110 transition-transform">
                           {u.name?.charAt(0)?.toUpperCase() || '?'}
                         </div>
                         <div>
-                          <p className="font-medium text-white">{u.name}</p>
-                          <p className="text-xs text-slate-500">{u.email}</p>
+                          <p className="font-bold text-white">{u.name}</p>
+                          <p className="text-xs text-slate-400">{u.email}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-xs px-2 py-1 bg-slate-800 text-slate-300 rounded-lg capitalize border border-slate-700">
+                      <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 bg-white/5 text-slate-300 rounded-lg border border-white/10">
                         {u.auth_provider}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`flex items-center gap-1.5 w-fit text-xs px-2 py-1 rounded-full font-semibold border ${
+                      <span className={`flex items-center gap-1.5 w-fit text-xs px-2.5 py-1 rounded-full font-bold border shadow-sm ${
                         u.is_blocked
-                          ? 'bg-red-500/10 text-red-400 border-red-500/20'
-                          : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                          ? 'bg-red-500/10 text-red-400 border-red-500/20 shadow-red-500/10'
+                          : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-emerald-500/10'
                       }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${u.is_blocked ? 'bg-red-400' : 'bg-emerald-400'}`} />
+                        <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${u.is_blocked ? 'bg-red-400 shadow-[0_0_8px_rgba(239,68,68,0.8)]' : 'bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]'}`} />
                         {u.is_blocked ? 'Blocked' : 'Active'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-slate-400 text-xs">
+                    <td className="px-6 py-4 text-slate-400 text-xs font-medium">
                       {new Date(u.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
@@ -359,7 +359,7 @@ export default function UserManagement() {
                         <button
                           onClick={() => openDetail(u.id)}
                           disabled={detailLoading}
-                          className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition-all"
+                          className="p-2 text-slate-400 hover:text-violet-400 hover:bg-violet-500/20 rounded-xl transition-all hover:shadow-[0_0_15px_rgba(139,92,246,0.3)]"
                           title="View Details"
                         >
                           <Eye className="w-4 h-4" />
@@ -368,7 +368,7 @@ export default function UserManagement() {
                           <button
                             onClick={() => handleUnblock(u.id)}
                             disabled={actionLoading}
-                            className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-lg transition-all"
+                            className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/20 rounded-xl transition-all hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                             title="Unblock"
                           >
                             <ShieldCheck className="w-4 h-4" />
@@ -377,7 +377,7 @@ export default function UserManagement() {
                           <button
                             onClick={() => handleBlock(u.id)}
                             disabled={actionLoading}
-                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/20 rounded-xl transition-all hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]"
                             title="Block"
                           >
                             <ShieldOff className="w-4 h-4" />

@@ -9,10 +9,10 @@ import { adminGameApi } from '../api/adminGameApi';
 
 // ── Helpers ───────────────────────────────────────────────────
 const STATUS_STYLES = {
-  ACTIVE:    'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  WAITING:   'bg-yellow-500/10  text-yellow-400  border-yellow-500/20',
-  COMPLETED: 'bg-slate-700      text-slate-300   border-slate-600',
-  EXPIRED:   'bg-red-500/10    text-red-400     border-red-500/20',
+  ACTIVE:    'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]',
+  WAITING:   'bg-yellow-500/10  text-yellow-400  border-yellow-500/30 shadow-[0_0_15px_rgba(234,179,8,0.15)]',
+  COMPLETED: 'bg-white/5        text-slate-300   border-white/10',
+  EXPIRED:   'bg-red-500/10     text-red-400     border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]',
 };
 
 const CARD_STATUS_STYLES = {
@@ -31,14 +31,14 @@ const fmtTime = (d) => d ? new Date(d).toLocaleString('en-IN', { day:'2-digit', 
 // ── Stat Card ─────────────────────────────────────────────────
 function StatCard({ icon: Icon, label, value, color, sub }) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center gap-4">
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color}`}>
-        <Icon className="w-6 h-6 text-white" />
+    <div className="glass-card rounded-[1.5rem] p-5 flex items-center gap-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg group">
+      <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center ${color} shadow-inner group-hover:scale-110 transition-transform duration-300`}>
+        <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
       </div>
       <div>
-        <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">{label}</p>
-        <p className="text-2xl font-bold text-white">{value ?? '—'}</p>
-        {sub && <p className="text-xs text-slate-500 mt-0.5">{sub}</p>}
+        <p className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">{label}</p>
+        <p className="text-xl md:text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">{value ?? '—'}</p>
+        {sub && <p className="text-[10px] text-slate-500 mt-1 font-medium">{sub}</p>}
       </div>
     </div>
   );
@@ -404,12 +404,12 @@ export default function GameManagement() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">Game Management</h1>
-        <p className="text-slate-400 text-sm mt-1">Monitor all active and completed games, view card activity, and force-end games.</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Game Management</h1>
+        <p className="text-slate-400 text-xs md:text-sm mt-1">Monitor all active and completed games, view card activity, and force-end games.</p>
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-3 md:gap-4">
         <StatCard icon={Gamepad2}     label="Total Games"    value={stats?.total_games}         color="bg-indigo-500/80" />
         <StatCard icon={Activity}     label="Active"         value={stats?.active_games}         color="bg-emerald-500/80" />
         <StatCard icon={Clock}        label="Waiting"        value={stats?.waiting_games}        color="bg-yellow-500/80" />
@@ -460,8 +460,8 @@ export default function GameManagement() {
       </div>
 
       {/* Games Table */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+      <div className="glass-panel rounded-[1.5rem] overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
           <h2 className="font-semibold text-white text-sm">
             {loading ? 'Loading…' : `${pagination.total} Games Found`}
           </h2>
@@ -492,27 +492,27 @@ export default function GameManagement() {
                   <th className="px-6 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/50">
+              <tbody className="divide-y divide-white/5">
                 {games.map(g => (
-                  <tr key={g.id} className="hover:bg-slate-800/30 transition-colors group">
+                  <tr key={g.id} className="hover:bg-white/[0.04] transition-all duration-300 group hover:translate-x-1">
                     <td className="px-6 py-4">
                       <p className="font-mono font-bold text-white text-sm">{g.code}</p>
-                      <p className="text-xs text-slate-600 truncate max-w-[100px]">{g.id.slice(0,8)}…</p>
+                      <p className="text-xs text-slate-500 truncate max-w-[100px]">{g.id.slice(0,8)}…</p>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="space-y-1">
+                      <div className="space-y-1.5">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-yellow-500">👑</span>
-                          <span className="text-xs text-slate-300 truncate max-w-[120px]">{g.host?.name || '—'}</span>
+                          <span className="text-[10px] bg-yellow-500/10 text-yellow-500 rounded p-0.5">👑</span>
+                          <span className="text-xs font-semibold text-slate-200 truncate max-w-[120px]">{g.host?.name || '—'}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs text-slate-500">🤝</span>
-                          <span className="text-xs text-slate-500 truncate max-w-[120px]">{g.partner?.name || 'Waiting…'}</span>
+                          <span className="text-[10px] bg-slate-700/50 text-slate-400 rounded p-0.5">🤝</span>
+                          <span className="text-xs text-slate-400 truncate max-w-[120px]">{g.partner?.name || 'Waiting…'}</span>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-xs px-2 py-1 bg-slate-800 text-slate-300 rounded-lg border border-slate-700">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-white/5 text-slate-300 rounded-lg border border-white/10">
                         {g.expiry_type?.replace('_',' ')}
                       </span>
                     </td>
@@ -521,18 +521,18 @@ export default function GameManagement() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1.5 text-xs">
-                        <span className="text-slate-300 font-semibold">{g.cards.total}</span>
-                        <span className="text-slate-600">total</span>
+                        <span className="text-white font-bold">{g.cards.total}</span>
+                        <span className="text-slate-500 font-medium">total</span>
                         {g.cards.pending > 0 && (
-                          <span className="ml-1 px-1.5 py-0.5 bg-yellow-500/10 text-yellow-400 rounded-full border border-yellow-500/20 text-xs font-semibold">
+                          <span className="ml-1 px-2 py-0.5 bg-yellow-500/10 text-yellow-400 rounded-full border border-yellow-500/30 text-[10px] font-bold shadow-[0_0_10px_rgba(234,179,8,0.15)]">
                             {g.cards.pending} pending
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-slate-400 text-xs">{fmt(g.created_at)}</td>
+                    <td className="px-6 py-4 text-slate-400 text-xs font-medium">{fmt(g.created_at)}</td>
                     <td className="px-6 py-4">
-                      <span className={`text-xs ${new Date(g.expires_at) < new Date() ? 'text-red-400' : 'text-slate-400'}`}>
+                      <span className={`text-xs font-medium ${new Date(g.expires_at) < new Date() ? 'text-red-400' : 'text-slate-400'}`}>
                         {fmt(g.expires_at)}
                       </span>
                     </td>
@@ -541,7 +541,7 @@ export default function GameManagement() {
                         <button
                           onClick={() => openDetail(g.id)}
                           disabled={detailLoading}
-                          className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-lg transition-all"
+                          className="p-2 text-slate-400 hover:text-violet-400 hover:bg-violet-500/20 rounded-xl transition-all hover:shadow-[0_0_15px_rgba(139,92,246,0.3)]"
                           title="View Details"
                         >
                           <Eye className="w-4 h-4" />
@@ -550,7 +550,7 @@ export default function GameManagement() {
                           <button
                             onClick={() => handleForceEnd(g.id)}
                             disabled={actionLoading}
-                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/20 rounded-xl transition-all hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]"
                             title="Force End Game"
                           >
                             <ZapOff className="w-4 h-4" />
