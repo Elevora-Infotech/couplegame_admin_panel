@@ -16,10 +16,13 @@ export default function Questions() {
   const [formData, setFormData] = useState({
     text: '',
     input_type: 'SINGLE_CHOICE',
-    options: ['']
+    options: [''],
+    showConditionally: false,
+    dependency_parent_id: '',
+    dependency_option_id: ''
   });
 
-  const inputTypes = ['SINGLE_CHOICE', 'TEXT', 'SLIDER'];
+  const inputTypes = ['SINGLE_CHOICE', 'TEXT', 'SLIDER', 'DATE_PICKER'];
 
   const fetchData = async () => {
     setLoading(true);
@@ -50,18 +53,25 @@ export default function Questions() {
 
   const handleOpenModal = (q = null) => {
     if (q) {
+      const hasDependency = q.dependencies && q.dependencies.length > 0;
       setEditingId(q.id);
       setFormData({
         text: q.text,
         input_type: q.input_type,
-        options: q.options && q.options.length > 0 ? q.options : ['']
+        options: q.options && q.options.length > 0 ? q.options.map(o => typeof o === 'string' ? o : o.option_text) : [''],
+        showConditionally: hasDependency,
+        dependency_parent_id: hasDependency ? q.dependencies[0].parent_question_id : '',
+        dependency_option_id: hasDependency ? q.dependencies[0].required_option_id : ''
       });
     } else {
       setEditingId(null);
       setFormData({
         text: '',
         input_type: 'SINGLE_CHOICE',
-        options: ['']
+        options: [''],
+        showConditionally: false,
+        dependency_parent_id: '',
+        dependency_option_id: ''
       });
     }
     setIsModalOpen(true);
@@ -99,6 +109,15 @@ export default function Questions() {
       text: formData.text,
       input_type: formData.input_type
     };
+
+    if (formData.showConditionally) {
+      if (!formData.dependency_parent_id || !formData.dependency_option_id) {
+        toast.error('Please select both parent question and option for condition');
+        return;
+      }
+      payload.dependency_parent_id = formData.dependency_parent_id;
+      payload.dependency_option_id = formData.dependency_option_id;
+    }
 
     if (formData.input_type === 'SINGLE_CHOICE') {
       const validOptions = formData.options.filter(opt => opt.trim() !== '');
@@ -285,6 +304,53 @@ export default function Questions() {
                   </button>
                 </div>
               )}
+
+              {/* Conditional Logic Section */}
+              <div className="pt-2 border-t border-slate-800">
+                <label className="flex items-center gap-3 cursor-pointer text-sm font-medium text-slate-300">
+                  <input 
+                    type="checkbox" 
+                    checked={formData.showConditionally}
+                    onChange={(e) => setFormData({...formData, showConditionally: e.target.checked})}
+                    className="w-4 h-4 rounded border-slate-700 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-900 bg-slate-800"
+                  />
+                  Show this question conditionally?
+                </label>
+
+                {formData.showConditionally && (
+                  <div className="mt-4 space-y-4 bg-slate-800/40 p-4 rounded-xl border border-slate-800">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-400 mb-1.5">Depends on Question:</label>
+                      <select 
+                        value={formData.dependency_parent_id}
+                        onChange={(e) => setFormData({...formData, dependency_parent_id: e.target.value, dependency_option_id: ''})}
+                        className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+                      >
+                        <option value="">-- Select Parent Question --</option>
+                        {questions.filter(q => q.id !== editingId).map(q => (
+                          <option key={q.id} value={q.id}>{q.text}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {formData.dependency_parent_id && (
+                      <div>
+                        <label className="block text-xs font-medium text-slate-400 mb-1.5">Only show if answer is:</label>
+                        <select 
+                          value={formData.dependency_option_id}
+                          onChange={(e) => setFormData({...formData, dependency_option_id: e.target.value})}
+                          className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+                        >
+                          <option value="">-- Select Required Answer --</option>
+                          {questions.find(q => q.id === formData.dependency_parent_id)?.options?.map(opt => (
+                            <option key={opt.id} value={opt.id}>{opt.option_text}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
 
               <div className="pt-4 flex justify-end gap-3 mt-auto">
                 <button 
