@@ -19,6 +19,7 @@ export default function Notifications() {
   const [manualTarget, setManualTarget] = useState('all');
   const [manualUserId, setManualUserId] = useState('');
   const [sendingManual, setSendingManual] = useState(false);
+  const [triggeringAnniv, setTriggeringAnniv] = useState(false);
 
   // Scheduled Send State
   const [schedTitle, setSchedTitle] = useState('');
@@ -95,6 +96,19 @@ export default function Notifications() {
       toast.error(err.response?.data?.message || 'Failed to send notification');
     } finally {
       setSendingManual(false);
+    }
+  };
+
+  const handleTriggerAnniversaries = async () => {
+    setTriggeringAnniv(true);
+    try {
+      const res = await adminNotificationApi.triggerAnniversaries();
+      toast.success(res.message);
+      fetchData(); // refresh logs
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to trigger anniversaries');
+    } finally {
+      setTriggeringAnniv(false);
     }
   };
 
@@ -276,6 +290,19 @@ export default function Notifications() {
               Send Notification Now
             </button>
           </form>
+          
+          <div className="mt-8 pt-6 border-t border-slate-800">
+            <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">🎉 Trigger Anniversary Push</h2>
+            <p className="text-sm text-slate-400 mb-4">Manually find all users whose anniversary is today and send them a "Happy Anniversary" push notification.</p>
+            <button 
+              onClick={handleTriggerAnniversaries} 
+              disabled={triggeringAnniv}
+              className="w-full py-3 bg-pink-500 hover:bg-pink-600 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-pink-500/20"
+            >
+              {triggeringAnniv ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+              Send Anniversary Notifications Now
+            </button>
+          </div>
         </div>
       )}
 

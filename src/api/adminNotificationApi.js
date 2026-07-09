@@ -26,6 +26,10 @@ export const adminNotificationApi = {
     const res = await api.post('/admin/notifications/send', data);
     return res.data;
   },
+  triggerAnniversaries: async () => {
+    const res = await api.post('/admin/notifications/trigger-anniversaries');
+    return res.data;
+  },
 
   // Scheduled
   getScheduled: async () => {
