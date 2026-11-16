@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, ShieldOff, ShieldCheck, RotateCcw, Eye, X, Users, UserCheck, UserX, Home, ChevronLeft, ChevronRight, Loader2, AlertTriangle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, ShieldOff, ShieldCheck, RotateCcw, Eye, X, Users, UserCheck, UserX, Home, ChevronLeft, ChevronRight, Loader2, AlertTriangle, ExternalLink, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminUserApi } from '../api/adminUserApi';
 
@@ -19,7 +20,7 @@ function StatCard({ icon: Icon, label, value, color }) {
 }
 
 // ── User Detail Modal ─────────────────────────────────────────
-function UserDetailModal({ user, onClose, onBlock, onUnblock, onResetRoom, loading }) {
+function UserDetailModal({ user, onClose, onBlock, onUnblock, onResetRoom, loading, onOpenPlayerScreen }) {
   if (!user) return null;
   const u = user.user;
   const s = user.stats;
@@ -36,6 +37,11 @@ function UserDetailModal({ user, onClose, onBlock, onUnblock, onResetRoom, loadi
             <div>
               <h2 className="text-xl font-bold text-white">{u.name}</h2>
               <p className="text-sm text-slate-400">{u.email}</p>
+              {u.phone && (
+                <p className="text-xs text-slate-400 font-mono mt-0.5">
+                  Phone: <span className="text-slate-200">{u.phone_masked || u.phone}</span>
+                </p>
+              )}
               <div className="flex items-center gap-2 mt-1">
                 <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${u.is_blocked ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}`}>
                   {u.is_blocked ? '🔴 Blocked' : '🟢 Active'}
@@ -107,6 +113,14 @@ function UserDetailModal({ user, onClose, onBlock, onUnblock, onResetRoom, loadi
               <RotateCcw className="w-4 h-4" /> Reset Active Room
             </button>
           )}
+          {onOpenPlayerScreen && (
+            <button
+              onClick={() => onOpenPlayerScreen(u.id)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 border border-violet-500/30 rounded-xl text-sm font-medium transition-all"
+            >
+              <User className="w-4 h-4" /> Open Player Screen
+            </button>
+          )}
           <p className="text-xs text-slate-500 self-center ml-auto">
             Joined {new Date(u.created_at).toLocaleDateString()}
           </p>
@@ -140,6 +154,7 @@ function UserDetailModal({ user, onClose, onBlock, onUnblock, onResetRoom, loadi
 
 // ── Main Page ─────────────────────────────────────────────────
 export default function UserManagement() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, limit: 15, total: 0, pages: 1 });
@@ -187,10 +202,16 @@ export default function UserManagement() {
   };
 
   const handleBlock = async (id) => {
-    if (!confirm('Block this user? They will lose access to the app.')) return;
+    const reason = prompt('MANDATORY REASON: Please enter the business reason for blocking this user (minimum 5 characters):');
+    if (reason === null) return; // User cancelled
+    if (!reason.trim() || reason.trim().length < 5) {
+      toast.error('Action rejected: A reason of at least 5 characters is mandatory.');
+      return;
+    }
+
     setActionLoading(true);
     try {
-      await adminUserApi.block(id);
+      await adminUserApi.block(id, reason.trim());
       toast.success('User blocked successfully');
       setSelectedUser(null);
       fetchUsers(pagination.page);
@@ -203,9 +224,16 @@ export default function UserManagement() {
   };
 
   const handleUnblock = async (id) => {
+    const reason = prompt('MANDATORY REASON: Please enter the business reason for unblocking this user (minimum 5 characters):');
+    if (reason === null) return; // User cancelled
+    if (!reason.trim() || reason.trim().length < 5) {
+      toast.error('Action rejected: A reason of at least 5 characters is mandatory.');
+      return;
+    }
+
     setActionLoading(true);
     try {
-      await adminUserApi.unblock(id);
+      await adminUserApi.unblock(id, reason.trim());
       toast.success('User unblocked successfully');
       setSelectedUser(null);
       fetchUsers(pagination.page);
@@ -218,10 +246,16 @@ export default function UserManagement() {
   };
 
   const handleResetRoom = async (id) => {
-    if (!confirm('Force-close the active room? All cards in this room will be expired. This cannot be undone.')) return;
+    const reason = prompt('MANDATORY REASON: Please enter the reason for closing this stuck room (minimum 5 characters):');
+    if (reason === null) return; // User cancelled
+    if (!reason.trim() || reason.trim().length < 5) {
+      toast.error('Action rejected: A reason of at least 5 characters is mandatory.');
+      return;
+    }
+
     setActionLoading(true);
     try {
-      const res = await adminUserApi.resetRoom(id);
+      const res = await adminUserApi.resetRoom(id, reason.trim());
       toast.success(res.data.message);
       setSelectedUser(null);
       fetchUsers(pagination.page);
@@ -326,12 +360,19 @@ export default function UserManagement() {
                 {users.map(u => (
                   <tr key={u.id} className="hover:bg-white/[0.04] transition-all duration-300 group hover:translate-x-1">
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500/40 to-blue-500/40 flex items-center justify-center text-sm font-bold text-white border border-white/10 shadow-inner group-hover:scale-110 transition-transform">
+                      <div 
+                        onClick={() => navigate(`/player/${u.id}`)}
+                        className="flex items-center gap-3 cursor-pointer group/user"
+                        title="Open Player Screen"
+                      >
+                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500/40 to-blue-500/40 flex items-center justify-center text-sm font-bold text-white border border-white/10 shadow-inner group-hover/user:scale-110 transition-transform">
                           {u.name?.charAt(0)?.toUpperCase() || '?'}
                         </div>
                         <div>
-                          <p className="font-bold text-white">{u.name}</p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-bold text-white group-hover/user:text-violet-400 group-hover/user:underline transition-colors">{u.name}</p>
+                            <ExternalLink className="w-3 h-3 text-slate-500 opacity-60 group-hover/user:opacity-100 group-hover/user:text-violet-400 transition-all" />
+                          </div>
                           <p className="text-xs text-slate-400">{u.email}</p>
                         </div>
                       </div>
@@ -356,6 +397,13 @@ export default function UserManagement() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => navigate(`/player/${u.id}`)}
+                          className="p-2 text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/20 rounded-xl transition-all hover:shadow-[0_0_15px_rgba(99,102,241,0.3)]"
+                          title="Open Player Screen"
+                        >
+                          <User className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => openDetail(u.id)}
                           disabled={detailLoading}
@@ -425,6 +473,10 @@ export default function UserManagement() {
           onUnblock={handleUnblock}
           onResetRoom={handleResetRoom}
           loading={actionLoading}
+          onOpenPlayerScreen={(id) => {
+            setSelectedUser(null);
+            navigate(`/player/${id}`);
+          }}
         />
       )}
     </div>

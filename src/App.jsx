@@ -28,6 +28,11 @@ import FeedbackSystem from './pages/FeedbackSystem';
 import ContentVersioning from './pages/ContentVersioning';
 import BusinessKPIs from './pages/BusinessKPIs';
 import InsightDashboard from './pages/InsightDashboard';
+import ActionLogs from './pages/ActionLogs';
+import CoupleScreen from './pages/CoupleScreen';
+import PlayerScreen from './pages/PlayerScreen';
+import Settings from './pages/Settings';
+import SoftLaunchDashboard from './pages/SoftLaunchDashboard';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -89,11 +94,11 @@ function AppRoutes() {
         <Route path="intelligence/content-versioning" element={<ContentVersioning />} />
         <Route path="intelligence/kpis" element={<BusinessKPIs />} />
         <Route path="intelligence/insights" element={<InsightDashboard />} />
-        <Route path="settings" element={
-          <div className="flex items-center justify-center h-full text-slate-400">
-            Settings functionality coming soon.
-          </div>
-        } />
+        <Route path="audit-logs" element={<ActionLogs />} />
+        <Route path="couple/:roomId" element={<CoupleScreen />} />
+        <Route path="player/:userId" element={<PlayerScreen />} />
+        <Route path="soft-launch" element={<SoftLaunchDashboard />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
       
       {/* Fallback */}

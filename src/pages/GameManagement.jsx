@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Search, X, Gamepad2, Activity, Clock, CheckCircle2, XCircle,
   ChevronLeft, ChevronRight, Loader2, AlertTriangle, ZapOff,
-  Shield, Users, CreditCard, Eye, AlertOctagon, RotateCcw, Swords
+  Shield, Users, CreditCard, Eye, AlertOctagon, RotateCcw, Swords,
+  HeartHandshake, ExternalLink, ArrowRight
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminGameApi } from '../api/adminGameApi';
+import { useAuth } from '../context/AuthContext';
 
 // ── Helpers ───────────────────────────────────────────────────
 const STATUS_STYLES = {
@@ -29,23 +32,27 @@ const fmt = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day:'2-digit', 
 const fmtTime = (d) => d ? new Date(d).toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
 
 // ── Stat Card ─────────────────────────────────────────────────
-function StatCard({ icon: Icon, label, value, color, sub }) {
+function StatCard({ icon: Icon, label, value, color, sub, highlight }) {
   return (
-    <div className="glass-card rounded-[1.5rem] p-5 flex items-center gap-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg group">
-      <div className={`w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center ${color} shadow-inner group-hover:scale-110 transition-transform duration-300`}>
-        <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
+    <div className={`card-surface rounded-2xl p-5 border transition-all duration-200 hover:shadow-xl group flex flex-col justify-between ${
+      highlight ? 'border-[#256df2]/30 bg-[#161826]' : 'border-white/5 hover:border-white/10'
+    }`}>
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">{label}</span>
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color} shadow-inner shrink-0 group-hover:scale-105 transition-transform duration-200`}>
+          <Icon className="w-5 h-5 text-white" />
+        </div>
       </div>
       <div>
-        <p className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">{label}</p>
-        <p className="text-xl md:text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">{value ?? '—'}</p>
-        {sub && <p className="text-[10px] text-slate-500 mt-1 font-medium">{sub}</p>}
+        <p className="text-3xl font-black text-white tracking-tight font-mono">{value ?? 0}</p>
+        <p className="text-[11px] text-slate-400 mt-1 font-medium">{sub || 'Live Telemetry'}</p>
       </div>
     </div>
   );
 }
 
 // ── Game Detail Modal ─────────────────────────────────────────
-function GameDetailModal({ game, onClose, onForceEnd, loading }) {
+function GameDetailModal({ game, onClose, onForceEnd, loading, isAdmin, onOpenCoupleWorkbench }) {
   if (!game) return null;
   const { room, stats, sends, penalties, deflects, hostDeck, partnerDeck } = game;
 
@@ -132,7 +139,11 @@ function GameDetailModal({ game, onClose, onForceEnd, loading }) {
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-white truncate">{s.cards?.name || 'Card'}</p>
                     <p className="text-xs text-slate-500">{s.sender?.name} → {s.receiver?.name}</p>
-                    {s.message && <p className="text-xs text-slate-400 italic mt-0.5 truncate">"{s.message}"</p>}
+                    {s.optional_note_used && (
+                      <span className="inline-block mt-0.5 text-[10px] text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/20 font-medium">
+                        Private Note Attached
+                      </span>
+                    )}
                   </div>
                   <div className="text-right shrink-0">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${CARD_STATUS_STYLES[s.status] || 'bg-slate-700 text-slate-400'}`}>
@@ -296,13 +307,28 @@ function GameDetailModal({ game, onClose, onForceEnd, loading }) {
         {/* Actions */}
         <div className="p-6 flex flex-wrap gap-3">
           {(room.status === 'ACTIVE' || room.status === 'WAITING') && (
+            isAdmin ? (
+              <button
+                onClick={() => onForceEnd(room.id)}
+                disabled={loading}
+                className="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl text-sm font-semibold transition-all disabled:opacity-50 cursor-pointer"
+              >
+                <ZapOff className="w-4 h-4" />
+                Force End Game
+              </button>
+            ) : (
+              <span className="text-xs text-slate-500 bg-white/5 px-3 py-2 rounded-xl border border-white/5" title="Force-ending games is restricted to Admin role">
+                Admin Only
+              </span>
+            )
+          )}
+          {onOpenCoupleWorkbench && (
             <button
-              onClick={() => onForceEnd(room.id)}
-              disabled={loading}
-              className="flex items-center gap-2 px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
+              onClick={() => onOpenCoupleWorkbench(room.id)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white rounded-xl text-sm font-semibold transition-all shadow-lg shadow-violet-500/20"
             >
-              <ZapOff className="w-4 h-4" />
-              Force End Game
+              <HeartHandshake className="w-4 h-4" />
+              Open Couple Workbench
             </button>
           )}
           <button
@@ -333,21 +359,33 @@ function StatusBadge({ status }) {
 
 // ── Main Page ─────────────────────────────────────────────────
 export default function GameManagement() {
+  const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [games, setGames]           = useState([]);
   const [stats, setStats]           = useState(null);
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 });
   const [search, setSearch]         = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [typeFilter, setTypeFilter]     = useState('');
+  const [endReasonFilter, setEndReasonFilter] = useState('');
   const [loading, setLoading]       = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedGame, setSelectedGame]   = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [viewMode, setViewMode]           = useState('card');
 
   const fetchGames = useCallback(async (page = 1) => {
     setLoading(true);
     try {
-      const res = await adminGameApi.getAll({ page, limit: pagination.limit, status: statusFilter, search });
+      const res = await adminGameApi.getAll({ 
+        page, 
+        limit: pagination.limit, 
+        status: statusFilter, 
+        search,
+        type: typeFilter,
+        end_reason: endReasonFilter
+      });
       setGames(res.data.data.games);
       setPagination(p => ({ ...p, ...res.data.data.pagination }));
     } catch (e) {
@@ -355,7 +393,7 @@ export default function GameManagement() {
     } finally {
       setLoading(false);
     }
-  }, [search, statusFilter, pagination.limit]);
+  }, [search, statusFilter, typeFilter, endReasonFilter, pagination.limit]);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -364,7 +402,7 @@ export default function GameManagement() {
     } catch (_) {}
   }, []);
 
-  useEffect(() => { fetchGames(1); }, [search, statusFilter]);
+  useEffect(() => { fetchGames(1); }, [search, statusFilter, typeFilter, endReasonFilter]);
   useEffect(() => { fetchStats(); }, []);
 
   const openDetail = async (id) => {
@@ -380,10 +418,22 @@ export default function GameManagement() {
   };
 
   const handleForceEnd = async (roomId) => {
-    if (!confirm('Force-end this game? All pending cards will be closed. This cannot be undone.')) return;
+    if (!isAdmin) {
+      toast.error('Restricted: Only Admin users can force-end games.');
+      return;
+    }
+
+    const reason = prompt('MANDATORY REASON: Please enter the business reason for force-ending this game (minimum 5 characters):');
+    if (reason === null) return; // User cancelled
+
+    if (!reason.trim() || reason.trim().length < 5) {
+      toast.error('Action rejected: A detailed reason (minimum 5 characters) is mandatory.');
+      return;
+    }
+
     setActionLoading(true);
     try {
-      const res = await adminGameApi.forceEnd(roomId);
+      const res = await adminGameApi.forceEnd(roomId, reason.trim());
       toast.success(res.data.data?.message || 'Game ended successfully');
       setSelectedGame(null);
       fetchGames(pagination.page);
@@ -405,38 +455,87 @@ export default function GameManagement() {
       {/* Header */}
       <div>
         <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Game Management</h1>
-        <p className="text-slate-400 text-xs md:text-sm mt-1">Monitor all active and completed games, view card activity, and force-end games.</p>
+        <p className="text-slate-400 text-xs md:text-sm mt-1">Monitor all active and completed games, inspect couple workflows, and take support actions.</p>
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-3 md:gap-4">
-        <StatCard icon={Gamepad2}     label="Total Games"    value={stats?.total_games}         color="bg-indigo-500/80" />
-        <StatCard icon={Activity}     label="Active"         value={stats?.active_games}         color="bg-emerald-500/80" />
-        <StatCard icon={Clock}        label="Waiting"        value={stats?.waiting_games}        color="bg-yellow-500/80" />
-        <StatCard icon={CheckCircle2} label="Completed"      value={stats?.completed_games}      color="bg-slate-600" />
-        <StatCard icon={Gamepad2}     label="Started Today"  value={stats?.games_started_today}  color="bg-blue-500/80" />
-        <StatCard icon={CreditCard}   label="Cards Sent"     value={stats?.total_cards_sent}     color="bg-purple-500/80" />
-        <StatCard icon={AlertOctagon} label="Penalties"      value={stats?.total_penalties}      color="bg-red-500/80" />
-        <StatCard icon={Swords}       label="Deflects Used"  value={stats?.deflects_used}        color="bg-orange-500/80" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard 
+          icon={Gamepad2}     
+          label="Total Games"    
+          value={stats?.total_games}         
+          color="bg-[#256df2]" 
+          sub="All historical rooms"
+          highlight={true}
+        />
+        <StatCard 
+          icon={Activity}     
+          label="Active In-Play"   
+          value={stats?.active_games}         
+          color="bg-emerald-500" 
+          sub="Couples currently in turn"
+        />
+        <StatCard 
+          icon={Clock}        
+          label="Waiting for Partner"   
+          value={stats?.waiting_games}        
+          color="bg-amber-500" 
+          sub="Invite link dispatched"
+        />
+        <StatCard 
+          icon={CheckCircle2} 
+          label="Completed Games"      
+          value={stats?.completed_games}      
+          color="bg-slate-600" 
+          sub="Finished or expired"
+        />
+        <StatCard 
+          icon={CreditCard}   
+          label="Cards Sent"     
+          value={stats?.total_cards_sent}     
+          color="bg-purple-600" 
+          sub="Dare card dispatches"
+        />
+        <StatCard 
+          icon={Swords}       
+          label="Deflects Used"  
+          value={stats?.deflects_used}        
+          color="bg-orange-500" 
+          sub="Turn deflections"
+        />
+        <StatCard 
+          icon={AlertOctagon} 
+          label="Penalties Incurred"      
+          value={stats?.total_penalties}      
+          color="bg-red-500" 
+          sub="Turn infractions"
+        />
+        <StatCard 
+          icon={RotateCcw}     
+          label="Started Today"  
+          value={stats?.games_started_today}  
+          color="bg-cyan-600" 
+          sub="New rooms created"
+        />
       </div>
 
       {/* Filters */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4">
-        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
+      <div className="card-surface rounded-2xl p-4 border border-white/5">
+        <form onSubmit={handleSearch} className="flex flex-col md:flex-row flex-wrap gap-3">
+          <div className="relative flex-1 min-w-[220px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
             <input
               type="text"
-              placeholder="Search by room code (e.g. ELV-XXXXX)..."
+              placeholder="Search room code (e.g. ELV-XXXXX)..."
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
+              className="w-full pl-9 pr-4 py-2 bg-[#13141f] border border-white/10 rounded-xl text-xs md:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#256df2]/50 transition-all"
             />
           </div>
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            className="px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
+            className="px-3.5 py-2 bg-[#13141f] border border-white/10 rounded-xl text-xs md:text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#256df2]/50 transition-all"
           >
             <option value="">All Statuses</option>
             <option value="ACTIVE">Active</option>
@@ -444,14 +543,41 @@ export default function GameManagement() {
             <option value="COMPLETED">Completed</option>
             <option value="EXPIRED">Expired</option>
           </select>
-          <button type="submit" className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl transition-all">
+          <select
+            value={typeFilter}
+            onChange={e => setTypeFilter(e.target.value)}
+            className="px-3.5 py-2 bg-[#13141f] border border-white/10 rounded-xl text-xs md:text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#256df2]/50 transition-all"
+          >
+            <option value="">All Modes (Free/Paid)</option>
+            <option value="free">Free Mode</option>
+            <option value="paid">Paid (Season Mode)</option>
+          </select>
+          <select
+            value={endReasonFilter}
+            onChange={e => setEndReasonFilter(e.target.value)}
+            className="px-3.5 py-2 bg-[#13141f] border border-white/10 rounded-xl text-xs md:text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#256df2]/50 transition-all"
+          >
+            <option value="">All End Reasons</option>
+            <option value="completed">Completed Normally</option>
+            <option value="expired">Timer Expired</option>
+            <option value="host_left">Host Left</option>
+            <option value="partner_left">Partner Left</option>
+            <option value="admin_force_ended">Admin Force Ended</option>
+          </select>
+          <button type="submit" className="px-5 py-2 bg-[#256df2] hover:bg-[#1d5ecf] text-white text-xs md:text-sm font-semibold rounded-xl transition-all shadow-md">
             Search
           </button>
-          {(search || statusFilter) && (
+          {(search || statusFilter || typeFilter || endReasonFilter) && (
             <button
               type="button"
-              onClick={() => { setSearch(''); setSearchInput(''); setStatusFilter(''); }}
-              className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-400 text-sm rounded-xl transition-all"
+              onClick={() => { 
+                setSearch(''); 
+                setSearchInput(''); 
+                setStatusFilter(''); 
+                setTypeFilter(''); 
+                setEndReasonFilter(''); 
+              }}
+              className="px-4 py-2 bg-[#1e1f2b] hover:bg-[#252737] text-slate-300 text-xs md:text-sm rounded-xl transition-all border border-white/5"
             >
               Clear
             </button>
@@ -461,21 +587,142 @@ export default function GameManagement() {
 
       {/* Games Table */}
       <div className="glass-panel rounded-[1.5rem] overflow-hidden">
-        <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
-          <h2 className="font-semibold text-white text-sm">
-            {loading ? 'Loading…' : `${pagination.total} Games Found`}
-          </h2>
+        <div className="px-6 py-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-3 bg-white/[0.02]">
+          <div className="flex items-center gap-3">
+            <h2 className="font-bold text-white text-sm">
+              {loading ? 'Loading…' : `${pagination.total} Games Found`}
+            </h2>
+            <div className="capsule-nav-container rounded-full p-1 flex items-center space-x-1 text-xs">
+              <button 
+                type="button"
+                onClick={() => setViewMode('card')}
+                className={`px-3 py-1 rounded-full transition-all font-semibold ${viewMode === 'card' ? 'bg-[#256df2] text-white shadow-sm' : 'text-slate-400 hover:text-white'}`}
+              >
+                Card View (Pro)
+              </button>
+              <button 
+                type="button"
+                onClick={() => setViewMode('table')}
+                className={`px-3 py-1 rounded-full transition-all font-semibold ${viewMode === 'table' ? 'bg-[#256df2] text-white shadow-sm' : 'text-slate-400 hover:text-white'}`}
+              >
+                Table View
+              </button>
+            </div>
+          </div>
           <span className="text-xs text-slate-500">Page {pagination.page} of {pagination.pages}</span>
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+            <Loader2 className="w-8 h-8 text-[#256df2] animate-spin" />
           </div>
         ) : games.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-slate-500">
             <Gamepad2 className="w-12 h-12 mb-3 opacity-30" />
             <p className="text-sm">No games found.</p>
+          </div>
+        ) : viewMode === 'card' ? (
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {games.map(g => (
+              <div 
+                key={g.id} 
+                className="card-surface rounded-2xl p-6 flex flex-col justify-between border border-white/5 hover:border-[#256df2]/40 transition-all duration-300 shadow-xl group min-h-[290px] relative"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center space-x-3 min-w-0 flex-1">
+                      <div className="flex -space-x-2 overflow-hidden shrink-0">
+                        <div className="inline-flex items-center justify-center h-10 w-10 rounded-full ring-2 ring-[#171822] bg-gradient-to-tr from-[#256df2] to-[#6366f1] text-xs font-bold text-white shadow-sm">
+                          {g.host?.name?.charAt(0) || 'H'}
+                        </div>
+                        <div className="inline-flex items-center justify-center h-10 w-10 rounded-full ring-2 ring-[#171822] bg-gradient-to-tr from-[#d62380] to-[#ec4899] text-xs font-bold text-white shadow-sm">
+                          {g.partner?.name?.charAt(0) || 'P'}
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0 pr-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-sm font-bold text-white group-hover:text-[#38bdf8] transition-colors truncate max-w-[130px] sm:max-w-[150px]" title={g.host?.name}>
+                            {g.host?.name || 'Partner 1'}
+                          </span>
+                          <span className="text-slate-500 text-xs font-semibold">&</span>
+                          <span className={`text-sm font-bold truncate max-w-[130px] sm:max-w-[150px] ${g.partner?.name ? 'text-white' : 'text-amber-400 italic'}`} title={g.partner?.name || 'Awaiting Partner'}>
+                            {g.partner?.name || 'Awaiting Partner'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[11px] font-mono font-bold text-slate-300 bg-white/5 px-2 py-0.5 rounded-md border border-white/5">
+                            #{g.code}
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            Day {g.current_day || 1}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 flex items-center gap-1.5 ${
+                      g.status === 'ACTIVE' 
+                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
+                        : g.status === 'WAITING'
+                        ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                        : 'bg-slate-500/15 text-slate-300 border border-slate-500/30'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${
+                        g.status === 'ACTIVE' ? 'bg-emerald-400 animate-pulse' :
+                        g.status === 'WAITING' ? 'bg-amber-400' : 'bg-slate-500'
+                      }`} />
+                      {g.status === 'ACTIVE' ? 'Turn Active' : g.status}
+                    </span>
+                  </div>
+
+                  <div className="my-4 bg-[#181926] rounded-xl p-3.5 border border-white/5 space-y-2 text-xs">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-400 font-medium flex items-center gap-1.5">
+                        <CreditCard className="w-3.5 h-3.5 text-blue-400" />
+                        Cards Progress
+                      </span>
+                      <span className="font-bold text-white font-mono">
+                        {g.cards?.completed || 0} done <span className="text-slate-500 font-normal">/ {g.cards?.total || 0} sent</span>
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-400 font-medium flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-amber-400" />
+                        Room Expiry
+                      </span>
+                      <span className="font-mono text-amber-400 font-semibold">{fmt(g.expires_at)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-400 font-medium flex items-center gap-1.5">
+                        <Shield className="w-3.5 h-3.5 text-purple-400" />
+                        Pass Tier
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-[#38bdf8] font-bold text-[10px] uppercase">
+                        {g.mode === 'paid' ? 'Paid Season' : (g.expiry_type?.replace('_', ' ') || 'Free Mode')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2 mt-auto">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/couple/${g.id}`)}
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#256df2] to-[#1a57d0] hover:from-[#337cf4] hover:to-[#2268e0] text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 flex items-center justify-center gap-2 group-hover:scale-[1.01] cursor-pointer"
+                  >
+                    <span>View 7-Tier Lifecycle</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => openDetail(g.id)}
+                    className="p-2.5 rounded-xl bg-[#202231] hover:bg-[#2b2d42] text-slate-300 hover:text-white text-xs transition-colors border border-white/5 shrink-0 cursor-pointer"
+                    title="Quick Details"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -496,7 +743,14 @@ export default function GameManagement() {
                 {games.map(g => (
                   <tr key={g.id} className="hover:bg-white/[0.04] transition-all duration-300 group hover:translate-x-1">
                     <td className="px-6 py-4">
-                      <p className="font-mono font-bold text-white text-sm">{g.code}</p>
+                      <div 
+                        onClick={() => navigate(`/couple/${g.id}`)}
+                        className="cursor-pointer group/link flex items-center gap-1.5"
+                        title="Click to open 7-Tier Couple Screen"
+                      >
+                        <p className="font-mono font-bold text-white text-sm group-hover/link:text-violet-400 group-hover/link:underline transition-colors">{g.code}</p>
+                        <ExternalLink className="w-3 h-3 text-slate-500 opacity-60 group-hover/link:opacity-100 group-hover/link:text-violet-400 transition-all" />
+                      </div>
                       <p className="text-xs text-slate-500 truncate max-w-[100px]">{g.id.slice(0,8)}…</p>
                     </td>
                     <td className="px-6 py-4">
@@ -539,6 +793,13 @@ export default function GameManagement() {
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
                         <button
+                          onClick={() => navigate(`/couple/${g.id}`)}
+                          className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/20 rounded-xl transition-all hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                          title="Open Couple Screen"
+                        >
+                          <HeartHandshake className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => openDetail(g.id)}
                           disabled={detailLoading}
                           className="p-2 text-slate-400 hover:text-violet-400 hover:bg-violet-500/20 rounded-xl transition-all hover:shadow-[0_0_15px_rgba(139,92,246,0.3)]"
@@ -547,14 +808,20 @@ export default function GameManagement() {
                           <Eye className="w-4 h-4" />
                         </button>
                         {(g.status === 'ACTIVE' || g.status === 'WAITING') && (
-                          <button
-                            onClick={() => handleForceEnd(g.id)}
-                            disabled={actionLoading}
-                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/20 rounded-xl transition-all hover:shadow-[0_0_15px_rgba(239,68,68,0.3)]"
-                            title="Force End Game"
-                          >
-                            <ZapOff className="w-4 h-4" />
-                          </button>
+                          isAdmin ? (
+                            <button
+                              onClick={() => handleForceEnd(g.id)}
+                              disabled={actionLoading}
+                              className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/20 rounded-xl transition-all hover:shadow-[0_0_15px_rgba(239,68,68,0.3)] cursor-pointer"
+                              title="Force End Game (Admin Only)"
+                            >
+                              <ZapOff className="w-4 h-4" />
+                            </button>
+                          ) : (
+                            <span className="p-2 text-slate-600 cursor-not-allowed" title="Restricted to Admin role">
+                              <ZapOff className="w-4 h-4 opacity-25" />
+                            </span>
+                          )
                         )}
                       </div>
                     </td>
@@ -594,6 +861,11 @@ export default function GameManagement() {
           onClose={() => setSelectedGame(null)}
           onForceEnd={handleForceEnd}
           loading={actionLoading}
+          isAdmin={isAdmin}
+          onOpenCoupleWorkbench={(id) => {
+            setSelectedGame(null);
+            navigate(`/couple/${id}`);
+          }}
         />
       )}
     </div>

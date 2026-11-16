@@ -1,109 +1,127 @@
 import React, { useState, useEffect } from 'react';
-import axiosInstance from '../api/axiosInstance';
-import { GitBranch, ChevronDown, ChevronRight, RefreshCw } from 'lucide-react';
+import { 
+  GitBranch, RefreshCw, ArrowRight, Clock, ShieldCheck, User, 
+  FileText, Sparkles, Filter 
+} from 'lucide-react';
 import toast from 'react-hot-toast';
+import { adminContentApi } from '../api/adminContentApi';
 
 export default function ContentVersioning() {
-  const [versions, setVersions] = useState([]);
+  const [diffs, setDiffs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState({});
-  const [cardIdFilter, setCardIdFilter] = useState('');
 
-  const load = async () => {
-    setLoading(true);
+  const fetchDiffs = async () => {
     try {
-      const params = cardIdFilter ? `?cardId=${cardIdFilter}` : '';
-      const res = await axiosInstance.get(`/admin/intelligence/card-versions${params}`);
-      setVersions(res.data.data || []);
-    } catch { toast.error('Failed to load version history'); }
-    finally { setLoading(false); }
+      setLoading(true);
+      const res = await adminContentApi.getContentDiffs({ limit: 50 });
+      if (res.data?.status === 'success') {
+        setDiffs(res.data.data.diffs || []);
+      }
+    } catch (err) {
+      toast.error('Failed to load content version diffs');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { load(); }, []);
-
-  // Group by card
-  const grouped = React.useMemo(() => {
-    const map = {};
-    versions.forEach(v => {
-      if (!map[v.card_id]) map[v.card_id] = { card_id: v.card_id, name: v.name, versions: [] };
-      map[v.card_id].versions.push(v);
-    });
-    return Object.values(map);
-  }, [versions]);
-
-  const toggle = (id) => setExpanded(e => ({ ...e, [id]: !e[id] }));
+  useEffect(() => {
+    fetchDiffs();
+  }, []);
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-300">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6 animate-in fade-in duration-300">
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <GitBranch className="w-8 h-8 text-lime-500" />
-            Content Versioning
+          <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-lime-500/20 text-lime-400 border border-lime-500/30">
+              <GitBranch className="w-6 h-6" />
+            </div>
+            Content Versioning & Prompt Diffs (Part C6)
           </h1>
-          <p className="text-slate-400 mt-1">Full audit trail of every change made to cards, including what changed and who changed it.</p>
+          <p className="text-slate-400 text-xs md:text-sm mt-1">
+            Immutable version audit trail tracking every card prompt edit, spice rating change, and author justification.
+          </p>
         </div>
-        <div className="flex gap-2">
-          <input type="text" placeholder="Filter by Card ID..." value={cardIdFilter} onChange={e => setCardIdFilter(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && load()}
-            className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:border-lime-500" />
-          <button onClick={load} className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl border border-slate-700 font-medium transition-all">
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
+        <button
+          onClick={fetchDiffs}
+          disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl border border-slate-700 text-sm font-semibold transition-all"
+        >
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </button>
       </div>
 
+      {/* Diffs List */}
       {loading ? (
-        <div className="h-64 flex items-center justify-center text-lime-500">Loading version history...</div>
-      ) : grouped.length === 0 ? (
-        <div className="p-12 text-center text-slate-500 border border-dashed border-slate-800 rounded-2xl">
-          No version history found. Card version snapshots will appear here after the first card edit.
+        <div className="h-64 flex items-center justify-center text-lime-400">
+          Loading content version history...
+        </div>
+      ) : diffs.length === 0 ? (
+        <div className="glass-panel p-12 text-center text-slate-500 rounded-2xl border border-white/10">
+          <GitBranch className="w-12 h-12 mx-auto mb-3 opacity-30 text-lime-400" />
+          <p className="text-sm">No card version diffs logged yet.</p>
+          <p className="text-xs text-slate-600 mt-1">When an admin edits a card prompt in the Card Catalog, the side-by-side snapshot diff will appear here.</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {grouped.map(card => (
-            <div key={card.card_id} className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
-              <button onClick={() => toggle(card.card_id)}
-                className="w-full px-5 py-4 flex items-center justify-between hover:bg-slate-800/30 transition-colors">
-                <div className="flex items-center gap-3">
-                  <GitBranch className="w-5 h-5 text-lime-500" />
-                  <span className="font-semibold text-white">{card.name || 'Unnamed Card'}</span>
-                  <span className="text-xs text-slate-500 font-mono">{card.card_id.split('-')[0]}...</span>
-                  <span className="text-xs px-2 py-0.5 bg-lime-500/10 text-lime-400 border border-lime-500/20 rounded-md font-bold">
-                    {card.versions.length} version{card.versions.length !== 1 ? 's' : ''}
+        <div className="space-y-4">
+          {diffs.map((diff) => {
+            const beforePrompt = diff.before?.prompt;
+            const afterPrompt = diff.after?.prompt;
+            const beforeVersion = diff.before?.version || 1;
+            const afterVersion = diff.after?.version || beforeVersion + 1;
+
+            return (
+              <div key={diff.id} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-4">
+                {/* Meta Header */}
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded bg-lime-500/20 text-lime-300 font-mono font-bold text-[10px] border border-lime-500/30">
+                      {diff.action}
+                    </span>
+                    <span className="font-semibold text-white flex items-center gap-1">
+                      <User className="w-3.5 h-3.5 text-slate-400" />
+                      {diff.admin_name}
+                    </span>
+                  </div>
+                  <span className="text-slate-400 font-mono flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-slate-500" />
+                    {diff.created_at_ist}
                   </span>
                 </div>
-                {expanded[card.card_id] ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
-              </button>
 
-              {expanded[card.card_id] && (
-                <div className="border-t border-slate-800 divide-y divide-slate-800/50">
-                  {card.versions.map(v => (
-                    <div key={v.id} className="px-6 py-4 flex items-start gap-4">
-                      <div className="flex flex-col items-center pt-1">
-                        <div className="w-2.5 h-2.5 rounded-full bg-lime-500 ring-2 ring-lime-500/20" />
-                        <div className="w-px flex-1 bg-slate-800 mt-1" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 flex-wrap mb-2">
-                          <span className="text-sm font-bold text-white">Version {v.version_number}</span>
-                          <span className="text-xs text-slate-400">{new Date(v.created_at).toLocaleString()}</span>
-                          {v.admins?.name && <span className="text-xs text-lime-400">by {v.admins.name}</span>}
-                        </div>
-                        {v.change_reason && <p className="text-sm text-slate-300 mb-2">📝 {v.change_reason}</p>}
-                        <details className="group">
-                          <summary className="text-xs text-slate-500 cursor-pointer hover:text-slate-300 transition-colors">Show snapshot JSON</summary>
-                          <pre className="mt-2 text-xs text-slate-400 bg-slate-950 rounded-xl p-3 overflow-x-auto">
-                            {JSON.stringify(v.snapshot_json, null, 2)}
-                          </pre>
-                        </details>
-                      </div>
-                    </div>
-                  ))}
+                {/* Business Reason */}
+                <div className="p-3 bg-slate-800/40 rounded-xl border border-slate-700/40 text-xs">
+                  <span className="text-slate-500 uppercase font-bold text-[10px] block mb-0.5">Author Justification:</span>
+                  <p className="text-slate-200 italic">"{diff.reason}"</p>
                 </div>
-              )}
-            </div>
-          ))}
+
+                {/* Side-by-Side Prompt Diff */}
+                {diff.action === 'UPDATE_CARD_PROMPT_VERSION' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    {/* Previous Snapshot */}
+                    <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/20 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-rose-400 font-bold uppercase text-[10px]">Previous Prompt</span>
+                        <span className="px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-mono text-[10px]">v{beforeVersion}</span>
+                      </div>
+                      <p className="text-slate-300 line-through opacity-80">{beforePrompt || '—'}</p>
+                    </div>
+
+                    {/* New Version */}
+                    <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-emerald-400 font-bold uppercase text-[10px]">Updated Prompt</span>
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px]">v{afterVersion}</span>
+                      </div>
+                      <p className="text-slate-100 font-medium">{afterPrompt || '—'}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
