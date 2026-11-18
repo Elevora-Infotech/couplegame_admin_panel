@@ -59,3 +59,13 @@ export const getSoftLaunchMetrics = async () => {
   const response = await axiosInstance.get('/admin/settings/soft-launch');
   return response.data?.data;
 };
+
+export const getMembershipPlans = async () => {
+  const response = await axiosInstance.get('/admin/settings/plans');
+  return response.data?.data;
+};
+
+export const updateMembershipPlans = async ({ plans, features, reason }) => {
+  const response = await axiosInstance.put('/admin/settings/plans', { plans, features, reason });
+  return response.data?.data;
+};

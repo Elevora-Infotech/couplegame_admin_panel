@@ -3,9 +3,11 @@ import toast from 'react-hot-toast';
 import { PauseCircle, PlayCircle, AlertTriangle, ShieldCheck, Wrench, RefreshCw, Smartphone } from 'lucide-react';
 import { adminOperationsApi } from '../api/adminOperationsApi';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 export default function AppWideControlsBar() {
   const { isAdmin } = useAuth();
+  const { isDark } = useTheme();
   const [controls, setControls] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -97,7 +99,11 @@ export default function AppWideControlsBar() {
               setModalMode('pause');
               setShowModal(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs font-medium transition-colors cursor-pointer"
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-medium transition-colors cursor-pointer ${
+              isDark
+                ? 'bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border-white/10'
+                : 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-slate-300/80 shadow-xs'
+            }`}
             title="Freeze all card timers during outages so couples aren't penalized."
           >
             <PauseCircle className="w-3.5 h-3.5 text-violet-400" />
@@ -117,8 +123,10 @@ export default function AppWideControlsBar() {
           }}
           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-colors cursor-pointer border ${
             isMaintenance
-              ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-              : 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-slate-200 border-white/10'
+              ? (isDark ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : 'bg-rose-50 text-rose-700 border-rose-300')
+              : (isDark
+                  ? 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-slate-200 border-white/10'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-slate-300/80 shadow-xs')
           }`}
           title="Toggle in-app maintenance announcement banner"
         >
@@ -130,15 +138,17 @@ export default function AppWideControlsBar() {
       {/* Confirmation Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="glass-card rounded-[2rem] max-w-md w-full p-6 md:p-8 border border-white/10 bg-[#0B0F19] shadow-2xl space-y-5">
+          <div className={`glass-card rounded-[2rem] max-w-md w-full p-6 md:p-8 border shadow-2xl space-y-5 ${
+            isDark ? 'bg-[#0B0F19] border-white/10' : 'bg-white border-slate-200'
+          }`}>
             <div>
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h3 className={`text-lg font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 <AlertTriangle className="w-5 h-5 text-amber-400" />
                 {modalMode === 'pause' && 'Emergency: Pause All Card Timers'}
                 {modalMode === 'resume' && 'Resume All System Timers'}
                 {modalMode === 'maintenance' && 'Toggle In-App Maintenance Banner'}
               </h3>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 {modalMode === 'pause' && 'Freezes all active card timers across all rooms. No partner will incur penalties during this pause.'}
                 {modalMode === 'resume' && 'Calculates the outage duration and extends all active card deadlines by the exact minutes elapsed.'}
                 {modalMode === 'maintenance' && 'Displays a notification banner to all active players inside the mobile app.'}
@@ -148,20 +158,22 @@ export default function AppWideControlsBar() {
             <form onSubmit={handlePauseResumeSubmit} className="space-y-4">
               {modalMode === 'maintenance' && (
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300">Banner Message</label>
+                  <label className={`text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Banner Message</label>
                   <input
                     type="text"
                     required
                     value={maintenanceMsg}
                     onChange={(e) => setMaintenanceMsg(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-white/5 border border-white/10 rounded-xl text-xs text-white"
+                    className={`w-full px-3.5 py-2 border rounded-xl text-xs ${
+                      isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                    }`}
                   />
                 </div>
               )}
 
               <div className="space-y-1">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs font-semibold text-slate-300">Mandatory Business Reason</label>
+                  <label className={`text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Mandatory Business Reason</label>
                   <span className="text-[10px] text-amber-400">Min 5 chars</span>
                 </div>
                 <textarea
@@ -170,7 +182,9 @@ export default function AppWideControlsBar() {
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="E.g., AWS database upgrade scheduled from 2:00 PM to 2:30 PM..."
-                  className="w-full px-3.5 py-2 bg-white/5 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500"
+                  className={`w-full px-3.5 py-2 border rounded-xl text-xs ${
+                    isDark ? 'bg-white/5 border-white/10 text-white placeholder-slate-500' : 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400'
+                  }`}
                 />
               </div>
 
@@ -178,7 +192,9 @@ export default function AppWideControlsBar() {
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 text-xs font-semibold cursor-pointer"
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold border cursor-pointer ${
+                    isDark ? 'bg-white/5 hover:bg-white/10 text-slate-400 border-white/10' : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'
+                  }`}
                 >
                   Cancel
                 </button>

@@ -8,6 +8,7 @@ import {
 import toast from 'react-hot-toast';
 import { adminRevenueApi } from '../api/adminRevenueApi';
 import { useAuth } from '../context/AuthContext';
+import RoomPlansPricingManager from '../components/RoomPlansPricingManager';
 
 export default function PurchasesDashboard() {
   const { isAdmin } = useAuth();
@@ -262,7 +263,24 @@ export default function PurchasesDashboard() {
           <TrendingUp className="w-4 h-4 text-indigo-400" />
           Revenue & Subscription Analytics
         </button>
+
+        <button
+          onClick={() => setActiveTab('plans')}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+            activeTab === 'plans'
+              ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40 shadow-lg shadow-violet-500/10'
+              : 'text-slate-400 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <Crown className="w-4 h-4 text-violet-400" />
+          💎 VIP Room Plans & Dynamic Pricing
+        </button>
       </div>
+
+      {/* ── TAB 0: VIP ROOM PLANS & PRICING MANAGER ── */}
+      {activeTab === 'plans' && (
+        <RoomPlansPricingManager />
+      )}
 
       {/* ── TAB 1: COUPLE SUBSCRIPTIONS & SEASON PASSES ────────────────────── */}
       {activeTab === 'subscriptions' && (

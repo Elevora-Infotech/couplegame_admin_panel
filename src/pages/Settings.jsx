@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Sliders, ShieldAlert, Sparkles, Save, RefreshCw, AlertTriangle, CheckCircle2,
-  Bell, Smartphone, Zap, PauseCircle, PlayCircle, Layers, DollarSign, Clock, FileText, ChevronRight
+  Bell, Smartphone, Zap, PauseCircle, PlayCircle, Layers, DollarSign, Clock, FileText, ChevronRight, Crown
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import RoomPlansPricingManager from '../components/RoomPlansPricingManager';
 import {
   getRuntimeSettings, updateRuntimeSettings,
   getFreePoolStatus, seedFreePoolDefaults,
@@ -13,9 +15,18 @@ import {
 } from '../api/adminSettingsApi';
 
 export default function Settings() {
-  const [activeTab, setActiveTab] = useState('runtime');
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') || 'runtime';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab');
+    if (tabFromUrl) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [searchParams]);
 
   // Data states
   const [runtimeSettings, setRuntimeSettings] = useState(null);
@@ -229,6 +240,7 @@ export default function Settings() {
       {/* Tabs Navigation */}
       <div className="flex border-b border-white/10 overflow-x-auto custom-scrollbar gap-1">
         {[
+          { id: 'pricing-plans', label: '💎 Room Plans & Pricing', icon: Crown },
           { id: 'runtime', label: 'Game Parameters', icon: Sliders },
           { id: 'free-pool', label: 'Free-Pool Manager (40 Cards)', icon: Layers },
           { id: 'controls', label: 'App Controls & Outage', icon: ShieldAlert },
@@ -253,6 +265,11 @@ export default function Settings() {
           );
         })}
       </div>
+
+      {/* TAB 0: VIP ROOM PLANS & PRICING */}
+      {activeTab === 'pricing-plans' && (
+        <RoomPlansPricingManager />
+      )}
 
       {/* TAB 1: RUNTIME GAME PARAMETERS */}
       {activeTab === 'runtime' && (

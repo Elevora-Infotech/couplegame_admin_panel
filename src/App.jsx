@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 // Layouts & Pages
 import DashboardLayout from './layouts/DashboardLayout';
@@ -33,6 +34,7 @@ import CoupleScreen from './pages/CoupleScreen';
 import PlayerScreen from './pages/PlayerScreen';
 import Settings from './pages/Settings';
 import SoftLaunchDashboard from './pages/SoftLaunchDashboard';
+import TeamManagement from './pages/TeamManagement';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -99,6 +101,7 @@ function AppRoutes() {
         <Route path="player/:userId" element={<PlayerScreen />} />
         <Route path="soft-launch" element={<SoftLaunchDashboard />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="team" element={<TeamManagement />} />
       </Route>
       
       {/* Fallback */}
@@ -111,36 +114,38 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppRoutes />
-        <Toaster 
-          position="top-right"
-          toastOptions={{
-            duration: 3000,
-            style: {
-              background: 'rgba(15, 23, 42, 0.7)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              color: '#fff',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
-              borderRadius: '16px',
-              padding: '12px 20px',
-              fontWeight: '500',
-            },
-            success: {
-              iconTheme: {
-                primary: '#10b981',
-                secondary: 'rgba(16, 185, 129, 0.2)',
+        <ThemeProvider>
+          <AppRoutes />
+          <Toaster 
+            position="top-right"
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: 'rgba(15, 23, 42, 0.7)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                color: '#fff',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+                borderRadius: '16px',
+                padding: '12px 20px',
+                fontWeight: '500',
               },
-            },
-            error: {
-              iconTheme: {
-                primary: '#ef4444',
-                secondary: 'rgba(239, 68, 68, 0.2)',
+              success: {
+                iconTheme: {
+                  primary: '#10b981',
+                  secondary: 'rgba(16, 185, 129, 0.2)',
+                },
               },
-            },
-          }}
-        />
+              error: {
+                iconTheme: {
+                  primary: '#ef4444',
+                  secondary: 'rgba(239, 68, 68, 0.2)',
+                },
+              },
+            }}
+          />
+        </ThemeProvider>
       </AuthProvider>
     </Router>
   );
