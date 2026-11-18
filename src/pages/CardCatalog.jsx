@@ -723,6 +723,7 @@ export default function CardCatalog() {
 
         {isAdmin && (
           <div className="flex items-center gap-2.5">
+            {/* TEMPORARILY HIDDEN (Uncomment to re-enable Bulk Import & AI Prompt)
             <button
               onClick={() => setBulkModalOpen(true)}
               className="flex items-center gap-2 px-4 py-2.5 bg-slate-850 hover:bg-slate-800 border border-emerald-500/30 text-emerald-400 text-sm font-semibold rounded-xl transition-all shadow-lg shadow-emerald-500/10 hover:border-emerald-500/50"
@@ -736,6 +737,7 @@ export default function CardCatalog() {
             >
               <HelpCircle className="w-5 h-5" />
             </button>
+            */}
             <button
               onClick={() => { setEditCard(null); setModalOpen(true); }}
               className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]"
@@ -767,6 +769,7 @@ export default function CardCatalog() {
           {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
 
+        {/* Spicy Level Filter - Hidden as requested
         <select
           value={spiceFilter}
           onChange={e => setSpiceFilter(e.target.value)}
@@ -779,6 +782,7 @@ export default function CardCatalog() {
           <option value="4">🌶️ Level 4 (Steamy)</option>
           <option value="5">🌶️ Level 5 (Wild)</option>
         </select>
+        */}
 
         <select
           value={statusFilter}
