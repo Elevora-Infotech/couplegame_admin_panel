@@ -158,39 +158,50 @@ function CategoryModal({ editCat, nextOrder, onClose, onSaved }) {
 }
 
 // ── Main Page ─────────────────────────────────────────────────
+let categoriesCache = null;
+try {
+  const saved = sessionStorage.getItem('ssf_categories_cache');
+  if (saved) categoriesCache = JSON.parse(saved);
+} catch (e) {}
+
 export default function Categories() {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading]       = useState(true);
+  const [categories, setCategories] = useState(() => categoriesCache || []);
+  const [loading, setLoading]       = useState(!categoriesCache);
   const [modalOpen, setModalOpen]   = useState(false);
   const [editCat, setEditCat]       = useState(null);
 
-  const fetchCategories = async () => {
-    setLoading(true);
+  const fetchCategories = async (isBackground = false) => {
+    if (!isBackground && !categoriesCache) setLoading(true);
     try {
       // Also fetch card counts per category
       const [catRes, cardRes] = await Promise.all([
         axiosInstance.get('/admin/dashboard/categories'),
         axiosInstance.get('/admin/dashboard/cards'),
       ]);
-      const cats  = catRes.data.data.categories || [];
-      const cards = cardRes.data.data.cards || [];
+      const cats  = catRes.data?.data?.categories || [];
+      const cards = cardRes.data?.data?.cards || [];
 
       // Build card count map
       const countMap = {};
       cards.forEach(c => {
-        const cid = c.card_categories?.id;
+        const cid = c.card_categories?.id || c.category_id;
         if (cid) countMap[cid] = (countMap[cid] || 0) + 1;
       });
 
-      setCategories(cats.map(c => ({ ...c, card_count: countMap[c.id] || 0 })));
+      const updated = cats.map(c => ({ ...c, card_count: countMap[c.id] || 0 }));
+      setCategories(updated);
+      categoriesCache = updated;
+      try { sessionStorage.setItem('ssf_categories_cache', JSON.stringify(updated)); } catch (e) {}
     } catch (e) {
-      toast.error('Failed to load categories');
+      if (!isBackground) toast.error('Failed to load categories');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchCategories(); }, []);
+  useEffect(() => {
+    fetchCategories(Boolean(categoriesCache));
+  }, []);
 
   const handleToggle = async (cat) => {
     try {
