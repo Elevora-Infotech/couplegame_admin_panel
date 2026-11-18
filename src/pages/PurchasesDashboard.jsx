@@ -180,16 +180,26 @@ export default function PurchasesDashboard() {
           </p>
         </div>
 
-        {/* Header Action: Grant Season Pass */}
-        {isAdmin && (
+        {/* Header Actions */}
+        <div className="flex items-center gap-2.5 flex-wrap">
           <button
-            onClick={() => setGrantModal({ open: true })}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold rounded-xl text-sm shadow-lg shadow-violet-500/20 transition-all hover:scale-[1.02]"
+            onClick={() => navigate('/plans')}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-pink-600 via-rose-600 to-violet-600 hover:from-pink-500 hover:to-violet-500 text-white font-bold rounded-xl text-sm shadow-lg shadow-pink-500/25 transition-all hover:scale-[1.02] border border-pink-400/30"
           >
-            <Gift className="w-4 h-4" />
-            Grant Complimentary Pass
+            <Crown className="w-4 h-4 text-amber-300" />
+            💎 Edit Room Plans (₹99)
           </button>
-        )}
+
+          {isAdmin && (
+            <button
+              onClick={() => setGrantModal({ open: true })}
+              className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold rounded-xl text-sm shadow-lg shadow-violet-500/20 transition-all hover:scale-[1.02]"
+            >
+              <Gift className="w-4 h-4" />
+              Grant Complimentary Pass
+            </button>
+          )}
+        </div>
       </div>
 
       {/* KPI Cards (All in INR ₹) */}

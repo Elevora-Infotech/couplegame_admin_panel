@@ -4,7 +4,7 @@ import {
   LayoutDashboard, FolderTree, Library, MessageCircleQuestion, Settings, LogOut,
   Users, Gamepad2, Layers, Bell, BarChart3, HeartHandshake, Filter, UserMinus,
   SplitSquareHorizontal, ChevronDown, ChevronRight, TrendingUp, Brain, LayoutGrid,
-  ShieldAlert, MessageSquareMore, GitBranch, Lightbulb, PackageOpen, CreditCard, X, Compass, ShieldCheck
+  ShieldAlert, MessageSquareMore, GitBranch, Lightbulb, PackageOpen, CreditCard, X, Compass, ShieldCheck, Crown
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -23,9 +23,11 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     { name: 'Card Catalog',    path: '/cards',          icon: Library },
     { name: 'Bundles',         path: '/bundles',        icon: PackageOpen },
     { name: 'Purchases (₹)',   path: '/purchases',      icon: CreditCard },
+    { name: '💎 Room Plans (₹99)', path: '/plans',     icon: Crown },
     { name: 'Questions',       path: '/questions',      icon: MessageCircleQuestion },
     { name: 'Master Deck',     path: '/master-deck',    icon: Layers },
     { name: 'Notifications',   path: '/notifications',  icon: Bell },
+    { name: 'Settings',        path: '/settings',       icon: Settings },
     { name: 'Team & Admins',    path: '/team',           icon: ShieldCheck },
   ];
 

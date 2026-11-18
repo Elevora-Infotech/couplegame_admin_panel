@@ -35,6 +35,7 @@ import PlayerScreen from './pages/PlayerScreen';
 import Settings from './pages/Settings';
 import SoftLaunchDashboard from './pages/SoftLaunchDashboard';
 import TeamManagement from './pages/TeamManagement';
+import PlansManagement from './pages/PlansManagement';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -81,6 +82,7 @@ function AppRoutes() {
         <Route path="cards" element={<CardCatalog />} />
         <Route path="bundles" element={<BundlesManagement />} />
         <Route path="purchases" element={<PurchasesDashboard />} />
+        <Route path="plans" element={<PlansManagement />} />
         <Route path="card-analytics" element={<CardAnalytics />} />
         <Route path="relationship-dynamics" element={<RelationshipDynamics />} />
         <Route path="funnel-tracking" element={<FunnelTracking />} />
