@@ -112,10 +112,26 @@ function CategoryModal({ editCat, nextOrder, onClose, onSaved }) {
 
           {/* Icon URL */}
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Icon URL <span className="text-slate-600 font-normal">(optional)</span></label>
-            <input value={form.icon_url} onChange={e => set('icon_url', e.target.value)}
-              placeholder="https://…"
-              className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50" />
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                Category Image URL <span className="text-slate-600 font-normal">(PNG, JPG, WebP)</span>
+              </label>
+              {form.icon_url && (
+                <button
+                  type="button"
+                  onClick={() => set('icon_url', '')}
+                  className="text-[11px] text-slate-500 hover:text-red-400 transition-colors"
+                >
+                  Clear URL
+                </button>
+              )}
+            </div>
+            <input
+              value={form.icon_url}
+              onChange={e => set('icon_url', e.target.value)}
+              placeholder="https://... (e.g. https://your-domain.com/category.png)"
+              className="w-full px-3 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            />
           </div>
 
           {/* Active toggle */}
@@ -131,12 +147,44 @@ function CategoryModal({ editCat, nextOrder, onClose, onSaved }) {
           </div>
 
           {/* Preview */}
-          <div className="p-3 bg-slate-800/50 rounded-xl border border-slate-700/50 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl shrink-0 border border-slate-600"
-              style={{ backgroundColor: form.theme_color }} />
-            <div>
-              <p className="text-sm font-semibold text-white">{form.name || 'Category Name'}</p>
-              <p className="text-xs text-slate-500">{form.description || 'No description'}</p>
+          <div className="p-3.5 bg-slate-800/60 rounded-xl border border-slate-700 flex items-center gap-3.5">
+            <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-slate-600 shrink-0 bg-slate-800 flex items-center justify-center shadow-md">
+              {form.icon_url ? (
+                <img
+                  key={form.icon_url}
+                  src={form.icon_url}
+                  alt={form.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    if (e.currentTarget.nextSibling) {
+                      e.currentTarget.nextSibling.style.display = 'flex';
+                    }
+                  }}
+                />
+              ) : null}
+              <div
+                className={`w-full h-full flex items-center justify-center text-sm font-bold text-white ${form.icon_url ? 'hidden' : 'flex'}`}
+                style={{ backgroundColor: form.theme_color || '#4f46e5' }}
+              >
+                {form.name ? form.name.charAt(0).toUpperCase() : '#'}
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-bold text-white truncate">{form.name || 'Category Name'}</p>
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: form.theme_color || '#4f46e5' }} />
+              </div>
+              <p className="text-xs text-slate-400 truncate mt-0.5">{form.description || 'No description provided'}</p>
+              {form.icon_url ? (
+                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400 font-medium mt-1">
+                  ✓ Image preview active
+                </span>
+              ) : (
+                <span className="text-[11px] text-slate-500 mt-1 block">
+                  Color preview only (no image URL)
+                </span>
+              )}
             </div>
           </div>
 
@@ -271,7 +319,7 @@ export default function Categories() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-xs text-slate-500 uppercase tracking-wider border-b border-slate-800">
-                  <th className="px-6 py-3 text-left">Color</th>
+                  <th className="px-6 py-3 text-left">Image / Color</th>
                   <th className="px-6 py-3 text-left">Name</th>
                   <th className="px-6 py-3 text-left">Description</th>
                   <th className="px-6 py-3 text-left">Cards</th>
@@ -284,10 +332,39 @@ export default function Categories() {
                 {categories.map(cat => (
                   <tr key={cat.id} className={`hover:bg-slate-800/30 transition-colors ${!cat.is_active ? 'opacity-50' : ''}`}>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg border border-slate-700 shrink-0"
-                          style={{ backgroundColor: cat.theme_color || '#4f46e5' }} />
-                        <span className="text-xs text-slate-500 font-mono">{cat.theme_color}</span>
+                      <div className="flex items-center gap-3">
+                        <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-slate-700 bg-slate-800 shrink-0 flex items-center justify-center shadow-sm">
+                          {cat.icon_url ? (
+                            <img
+                              src={cat.icon_url}
+                              alt={cat.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                if (e.currentTarget.nextSibling) {
+                                  e.currentTarget.nextSibling.style.display = 'flex';
+                                }
+                              }}
+                            />
+                          ) : null}
+                          <div
+                            className={`w-full h-full flex items-center justify-center text-xs font-bold text-white ${cat.icon_url ? 'hidden' : 'flex'}`}
+                            style={{ backgroundColor: cat.theme_color || '#4f46e5' }}
+                          >
+                            {cat.name ? cat.name.charAt(0).toUpperCase() : '#'}
+                          </div>
+                        </div>
+                        <div className="flex flex-col">
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-2.5 h-2.5 rounded-full inline-block shrink-0" style={{ backgroundColor: cat.theme_color || '#4f46e5' }} />
+                            <span className="text-xs text-slate-300 font-mono font-medium">{cat.theme_color || '#4f46e5'}</span>
+                          </div>
+                          {cat.icon_url ? (
+                            <span className="text-[11px] text-emerald-400 font-medium">Image active</span>
+                          ) : (
+                            <span className="text-[11px] text-slate-500">Color only</span>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
